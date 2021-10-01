@@ -1,6 +1,12 @@
 # butter2sos
 Z-domain Butterworth filter design in C/MATLAB. Filter design is based
-on the recursive filter design shown in \[1-3\].
+on the recursive filter design shown in \[1-3\]. The motivation for this
+is to learn more about C programming with an interesting DSP project.
+
+To build:
+```
+gcc -std=c99 butter2sos_design.c butter2sos.c -o butter2sos
+```
 
 Based on the target filter type, the zero positions are already known,
 and the biquad coefficients are then easier to evaluate.
