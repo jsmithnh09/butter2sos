@@ -1,18 +1,18 @@
 function [sos, k] = butter2sos(N, Fc, Fs, type, dir)
-% Fixed EVEN order butterworth HPF/LPF generation. Since zeros are known, even
-% number of poles should be generated and ordered properly without
-% conditionally checking for odd-man-out singularities. The motivation for
-% the function is to allow code-generation via Simulink for real-time
-% filter design.
+% Even or odd butterworth HPF/LPF generation. Since zeros are known, poles 
+% should be generated and ordered properly without conditionally checking 
+% for odd-man-out singularities. The motivation for the function is for 
+% real-time filter design in C.
 %
 % SOS = BUTTER2SOS(N, Fc, Fs, [Type, Dir])
 %   N (scalar) is an even order filter to generate.
 %   Fc (scalar) is the corner -3 dB frequency.
-%   Fs (scalar) is the sampling rate of the filter
+%   Fs (scalar) is the sampling rate of the filter.
 %   TYPE (char) indicates "l(owpass)", "h(ighpass)", or "a(llpass)".
 %   DIR (char) indicates "(u)p" or "(d)own" stage ordering for LPF/HPFs.
+%     By default, the ordering is in an up configuration.
 %
-% TODO:
+% NOTES:
 % With odd order, pop the last pole and place it's coefficients in
 % the first stage. zeros are at +1 or -1 based on the LPF/HPF requirement.
 %
@@ -38,7 +38,7 @@ z = [];                                         % butterworth are all poles, no 
 phi = pi*(1:2:N-1)/(2*N) + pi/2;                % angular positions of pole on unit circle
 Wn = 2*Fc/Fs;                                   % corner frequency fractional to Nyquist.
 warp = 4*tan(pi/2*Wn);
-p = cos(phi) + 1i.*sin(phi);                    % eulers method (faster C-code gen in model?)
+p = cos(phi) + 1i.*sin(phi);                    % eulers method (faster C-code?)
 p = [p; conj(p)];                               % adding conjugates
 p = p(:);                                       % row-vector enforced.
 if (mod(N,2))
@@ -72,7 +72,7 @@ else
 end
 for iP = 1:length(p)
   a(iP+offset,2) = -2*real(p(iP));              % complex conjugate expansion, (x-z1)(z-z1*)
-  a(iP+offset,3) = real(p(iP) .* conj(p(iP)));
+  a(iP+offset,3) = real(p(iP) .* conj(p(iP)));  % roots/poly functions may be slow in comparison to a direct evaluation.
 end
 
 if (type(1) == 'h')                             % given that the zeros are all +/-1, we can save a poly call here.
