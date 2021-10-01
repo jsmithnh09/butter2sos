@@ -229,10 +229,11 @@ static regular_t* mksosmatrix(const int order, const int type)
 void printsosmatrix(const regular_t* matrix, int nstages)
 {
   // a0 term ignored, implicitly 1.
-  printf("#      b0              b1              b2              a1              a2\n");
+  printf("#      b0              b1              b2              a0              a1              a2\n");
   for (int grpInd = 0; grpInd < nstages; grpInd++) {
-    printf("%- 16.7e%- 16.7e%- 16.7e%- 16.7e%- 16.7e\n", matrix[grpInd*N_SOSCOEFFS], \
+    printf("%- 16.7e%- 16.7e%- 16.7e%- 16.7e%- 16.7e%- 16.7e\n", matrix[grpInd*N_SOSCOEFFS], \
             matrix[grpInd*N_SOSCOEFFS+1], matrix[grpInd*N_SOSCOEFFS+2], \
+            matrix[grpInd*N_SOSCOEFFS+3], \
             matrix[grpInd*N_SOSCOEFFS+4], matrix[grpInd*N_SOSCOEFFS+5]);
   }
 }
