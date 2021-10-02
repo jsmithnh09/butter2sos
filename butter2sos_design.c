@@ -87,6 +87,22 @@ static inline complex_t compsub(complex_t z1, complex_t z2)
   return (complex_t)((creal(z1) - creal(z2)) + (cimag(z1) - cimag(z2))*I);
 }
 
+/*************************************************************
+ *  Function compsqrt                                        *
+ *    complex square root using the equation                 *
+ *    sqrt(z) = sqrt(r)*(cos(phi/2) + sin(phi/2)i), where    *
+ *      r = abs(z), phi = angle(z).                          *
+ *************************************************************/
+
+static inline complex_t compsqrt(complex_t x)
+{
+  #if PRECISION == 32
+    return (complex_t) csqrtf(x);
+  #else
+    return (complex_t) csqrt(x);
+  #endif
+}
+
 /**********************************************************************
  *  Function euler                                                    *
  *    Generates a complex number using the identity                   *
