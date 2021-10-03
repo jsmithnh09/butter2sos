@@ -51,6 +51,9 @@ static complex_t compdiv(complex_t x, complex_t y);
 // complex multiplication
 static complex_t compmult(complex_t x, complex_t y);
 
+// warp lowpass to bandpass prototype
+static void bpfwarp(complex_t* poles, const int npoles, regular_t* zeros, int* nzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn);
+
 // warp lowpass to highpass prototype
 static void hpfwarp(complex_t* poles, const int numpoles, regular_t* zeros, int* nzeros, regular_t* gain, const regular_t omega);
 
