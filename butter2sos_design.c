@@ -390,6 +390,75 @@ static void hpfwarp(complex_t* poles, const int numpoles, regular_t* zeros, int*
   }
 }
 
+/************************************************************************
+ *  Function bpfwarp                                                    *
+ *    Warps the pole positions based on the corner frequencies.         *
+ *  Inputs:                                                             *
+ *    poles (complex_t*) is the complex pole array.                     *
+ *    numpoles (int) are the number of poles. This will double in size. *
+ *    zeros (regular_t*) is the zero array.                             *
+ *    numzeros (int*) is the number of zeros. This grows to zeros(np,1) *
+ *    gain (regular_t*) is the gain approximation.                      *
+ *    bwidth (regular_t*) is the bandwidth between corner frequencies.  *
+ *    Wn (regular_t*) is the center normalized frequency.               *
+ ************************************************************************/
+
+static void bpfwarp(complex_t* poles, int *numpoles, regular_t* zeros, int* nzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn)
+{
+  int order = numpoles - numzeros;
+  complex_t bw2 = (*bwidth)/2 + 0.0*I; // half bandwidth, bw/2.
+  complex_t bsq, bsum, pold; // intermediate complex values for warp calculations.
+  complex_t Wn2 = compmult((complex_t)Wn+0.0*I, (complex_t)Wn+0.0*I); // complex Wn^2.
+  
+  // p * bw/2
+  for (int pInd = 0; pInd < *numpoles; pInd++)
+  {
+    poles[pInd] = (complex_t)compmult(poles[pInd], bw2);  
+  }
+  
+  // reallocating to double in size.
+  poles = (complex_t*)realloc(poles, sizeof(complex_t)*(2*(*numpoles)));
+  
+  // [1,2,3,4] -> [1, 0, 2, 0, 3, 0, 4, 0]. expand the array.
+  int oldInd = (*numpoles)-1;
+  for (int pInd = 2*(*numpoles)-2; pInd > 0; pInd-=2)
+  {
+    poles[pInd] = poles[oldInd];
+    poles[pInd+1] = (complex_t)0.0 + 0.0*I;
+    poles[oldInd--] = (complex_t)0.0 + 0.0*I;
+  }
+  
+  // compute the p +/- sqrt(p^2 - Wn^2) for each group.
+  for (int pInd = 0; pInd < *numpoles; pInd++)
+  {
+    // extract pole intermediate values for BPF warping.
+    pold = poles[2*pInd];
+    bsum = compsub(compmult(pold, pold), Wn2); // p^2 - Wn^2
+    bsq = csqrt(bsum); // sqrt(p^2 - Wn^2)
+    
+    // p(i)   = p(i) + sqrt(p(i)^2 - Wn^2).
+    // p(i+1) = p(i) - sqrt(p(i)^2 - Wn^2).
+    
+    poles[2*pInd] = compadd(pold, bsq);
+    poles[2*pInd+1] = compsub(pold,  bsq);
+  }
+  
+  // indicate the new number of poles from this process.
+  *numpoles = (int)2*(*numpoles);
+  
+  // since no zeros were seeded, create S-plane zeros.
+  zeros = (complex_t*)malloc(sizeof(complex_t)*order);
+  for (int zInd = 0; zInd < order; zInd++)
+  {
+      zeros[zInd] = (complex_t)0.0 + 0.0*I;
+  }
+  *numzeros = order;
+  
+  // k = k * bw^(order)
+  *gain *= (regular_t)pow(*bwidth, order);
+  
+}
+
 
 /**********************************************************************
  *  Function bilinear_s2z                                             *
