@@ -403,9 +403,9 @@ static void hpfwarp(complex_t* poles, const int numpoles, regular_t* zeros, int*
  *    Wn (regular_t*) is the center normalized frequency.               *
  ************************************************************************/
 
-static void bpfwarp(complex_t* poles, int *numpoles, regular_t* zeros, int* nzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn)
+static void bpfwarp(complex_t* poles, int* numpoles, regular_t* zeros, int* numzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn)
 {
-  int order = numpoles - numzeros;
+  int order = *numpoles - *numzeros;
   complex_t bw2 = (*bwidth)/2 + 0.0*I; // half bandwidth, bw/2.
   complex_t bsq, bsum, pold; // intermediate complex values for warp calculations.
   complex_t Wn2 = compmult((complex_t)Wn+0.0*I, (complex_t)Wn+0.0*I); // complex Wn^2.
