@@ -1,7 +1,9 @@
 # butter2sos
-Z-domain Butterworth filter design in C/MATLAB. Filter design is based
-on the recursive filter design shown in \[1-3\]. The motivation for this
-is to learn more about C programming with an interesting DSP project.
+Z-domain Butterworth Second Order Section (SOS) filter design in C/MATLAB. 
+Filter design is based on the recursive filter design shown in \[1-3\]. The motivation 
+for this is to learn more about C programming with an interesting DSP project.
+The supported filter types are lowpass, highpass, and allpass, and soon to include 
+bandpass/bandstop types.
 
 To build:
 ```
