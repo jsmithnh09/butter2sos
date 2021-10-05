@@ -459,6 +459,79 @@ static void bpfwarp(complex_t* poles, int* numpoles, regular_t* zeros, int* numz
   
 }
 
+/**************************************************************
+ *  Function bsfwarp                                          *
+ *    Warps the poles and zeros to a bandstop filter type.    *
+ *  Inputs:                                                   *
+ *    poles (complex_t*) are the seeded poles.                *
+ *    numpoles (int*) is the number of poles in the array.    *
+ *    zeros (complex_t*) is a pointer to the zeros array.     *
+ *    numzeros (int*) is the number of zeros in the array.    *
+ *    gain (regular_t*) is the gain of the filter.            *
+ *    bwidth (regular_t*) is the bandwidth of the stop region.*
+ *    Wn (regular_t*) is the normalized center frequency.     *
+ * Outputs:                                                   *
+ *    numpoles will be modified to double in size.            *
+ *    numzeros will be the same length as numpoles with       *
+ *      repeating complex conjugates.                         *
+ **************************************************************/
+
+static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn)
+{
+  int order = *numpoles - *numzeros;
+  complex_t bw2 = (*bwidth / 2.0) + 0.0*I;
+  complex_t pold, bsum, bsq;
+  complex_t Wn2 = compmult((complex_t)Wn+0.0*I, (complex_t)Wn+0.0*I); // complex Wn^2.
+  
+  // gain shift is just 1, since k * real(prod(-z)/prod(-p)) = 1
+  // when the poles are around the unit circle and no zeros.
+  *gain = (regular_t)1.0;
+  
+  // warp the poles akin to the HPF transformation, by inverting.
+  for (int pInd = 0; pInd < *numpoles; pInd++)
+  {
+    poles[pInd] = compdiv(bw2, poles[pInd]); // (bw/2) ./ p
+  }
+  
+  // resize the poles and zeros.
+  poles = (complex_t*)realloc(poles, sizeof(complex_t)*2*(*numpoles));
+  
+  // first allocation of zeros.
+  zeros = (complex_t*)malloc(zeros, sizeof(complex_t)*2*(*numpoles));
+  *numzeros = (int)2*(*numpoles);
+  
+  // expanding [1, 2, 3, 4] -> [1, 0, 2, 0, 3, 0, 4, 0].
+  int oldInd = (*numpoles)-1;
+  for (int pInd = 2*(*numpoles)-2; pInd > 0; pInd-=2)
+  {
+    poles[pInd] = poles[oldInd];
+    poles[pInd+1] = (complex_t)0.0 + 0.0*I;
+    poles[oldInd--] = (complex_t)0.0 + 0.0*I;
+  }
+  
+  // using the old number of poles to loop over conjugate pairs, (0+/-j*Wn).
+  for (int zInd = 0; zInd < *numpoles; zInd++)
+  {
+    zeros[2*zInd] = (complex_t)0.0 + (*Wn)*I;
+    zeros[2*zInd+1] = (complex_t)0.0 - (*Wn)*I;
+  }
+  
+  // calculating p +/- sqrt(p^2 - Wn^2)
+  for (int pInd = 0; pInd < *numpoles; pInd++)
+  {
+    pold = poles[2*pInd];
+    bsum = compsub(compmult(pold, pold), Wn2); // p^2 - Wn^2
+    bsq = csqrt(bsum);
+    
+    // p(i) = p(old) + sqrt(p(old)^2 - Wn^2)
+    // p(i+1) = p(old) - sqrt(p(old)^2 - Wn^2)
+    poles[2*pInd] = compadd(pold, bsq);
+    poles[2*pInd+1] = compsub(pold, bsq);
+  }
+  
+  // indicate the new number of poles, (zero-length matches.)
+  *numpoles = *numzeros;
+}
 
 /**********************************************************************
  *  Function bilinear_s2z                                             *
