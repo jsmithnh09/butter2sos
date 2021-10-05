@@ -51,8 +51,14 @@ static complex_t compdiv(complex_t x, complex_t y);
 // complex multiplication
 static complex_t compmult(complex_t x, complex_t y);
 
+// pole sorting based on proximity to the unit circle.
+static void polesort(complex_t* poles, int* numpoles, int* order);
+
 // warp lowpass to bandpass prototype
 static void bpfwarp(complex_t* poles, int* numpoles, regular_t* zeros, int* numzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn);
+
+// warp lowpass to bandstop prototype
+static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn);
 
 // warp lowpass to highpass prototype
 static void hpfwarp(complex_t* poles, const int numpoles, regular_t* zeros, int* nzeros, regular_t* gain, const regular_t omega);
