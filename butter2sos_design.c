@@ -459,6 +459,47 @@ static void bpfwarp(complex_t* poles, int* numpoles, regular_t* zeros, int* numz
   
 }
 
+
+/************************************************************
+ *  Function polesort                                       *
+ *    Sorts poles based on proximity to the unit circle.    *
+ *  Inputs:                                                 *
+ *    poles (complex_t*) is a pointer to the pole array.    *
+ *    numpoles (int*) are the number of poles in the array. *
+ *    order (int*) indicates the order of the filter. If    *
+ *      odd, the last two poles are real from               *
+ *      BPF warping.                                        *
+ ************************************************************/
+
+static void polesort(complex_t* poles, int* numpoles, int* order)
+{
+  int len = (*order % 2) ? *numpoles-2 : *numpoles;
+  
+  // bubble sorting the poles into descending distance from unit circle.
+  complex_t temp;
+  for (int outerInd = 0; outerInd < len-1; outerInd++)
+  {
+    for (int compInd = 0; compInd < len-i-1; compInd++)
+    {
+      if (creal(poles[compInd]) < creal(poles[compInd+1]))
+      {
+        temp = poles[compInd];
+        poles[compInd] = poles[compInd+1];
+        poles[compInd+1] = temp;
+      }
+    }
+  }
+  
+  // flip the real poles in the case of an odd order bandpass.
+  if (*order % 2) && (creal(poles[len]) < creal(poles[len+1]))
+  {
+    temp = poles[len];
+    poles[len] = poles[len+1];
+    poles[len+1] = temp;
+  }
+}
+
+
 /**************************************************************
  *  Function bsfwarp                                          *
  *    Warps the poles and zeros to a bandstop filter type.    *
