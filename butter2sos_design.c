@@ -407,8 +407,9 @@ static void bpfwarp(complex_t* poles, int* numpoles, regular_t* zeros, int* numz
 {
   int order = *numpoles - *numzeros;
   complex_t bw2 = (*bwidth)/2 + 0.0*I; // half bandwidth, bw/2.
-  complex_t bsq, bsum, pold; // intermediate complex values for warp calculations.
-  complex_t Wn2 = compmult((complex_t)Wn+0.0*I, (complex_t)Wn+0.0*I); // complex Wn^2.
+  complex_t bsq, bsum, pold, cWn; // intermediate complex values for warp calculations.
+  cWn = (regular_t)*Wn + 0.0*I;
+  complex_t Wn2 = compmult(cWn, cWn); // complex Wn^2.
   
   // p * bw/2
   for (int pInd = 0; pInd < *numpoles; pInd++)
@@ -479,9 +480,9 @@ static void polesort(complex_t* poles, int* numpoles, int* order)
   complex_t temp;
   for (int outerInd = 0; outerInd < len-1; outerInd++)
   {
-    for (int compInd = 0; compInd < len-i-1; compInd++)
+    for (int compInd = 0; compInd < len-outerInd-1; compInd++)
     {
-      if (creal(poles[compInd]) < creal(poles[compInd+1]))
+      if (cabs(poles[compInd]) < cabs(poles[compInd+1]))
       {
         temp = poles[compInd];
         poles[compInd] = poles[compInd+1];
@@ -491,7 +492,7 @@ static void polesort(complex_t* poles, int* numpoles, int* order)
   }
   
   // flip the real poles in the case of an odd order bandpass.
-  if (*order % 2) && (creal(poles[len]) < creal(poles[len+1]))
+  if ((*order % 2) && (creal(poles[len]) < creal(poles[len+1])))
   {
     temp = poles[len];
     poles[len] = poles[len+1];
@@ -522,7 +523,7 @@ static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numz
   int order = *numpoles - *numzeros;
   complex_t bw2 = (*bwidth / 2.0) + 0.0*I;
   complex_t pold, bsum, bsq;
-  complex_t Wn2 = compmult((complex_t)Wn+0.0*I, (complex_t)Wn+0.0*I); // complex Wn^2.
+  complex_t Wn2 = compmult((complex_t)*Wn+0.0*I, (complex_t)*Wn+0.0*I); // complex Wn^2.
   
   // gain shift is just 1, since k * real(prod(-z)/prod(-p)) = 1
   // when the poles are around the unit circle and no zeros.
@@ -538,7 +539,7 @@ static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numz
   poles = (complex_t*)realloc(poles, sizeof(complex_t)*2*(*numpoles));
   
   // first allocation of zeros.
-  zeros = (complex_t*)malloc(zeros, sizeof(complex_t)*2*(*numpoles));
+  zeros = (complex_t*)malloc(sizeof(complex_t)*2*(*numpoles));
   *numzeros = (int)2*(*numpoles);
   
   // expanding [1, 2, 3, 4] -> [1, 0, 2, 0, 3, 0, 4, 0].
