@@ -71,7 +71,7 @@ static void hpfwarp(complex_t* poles, const int numpoles, regular_t* zeros, int*
 static void lpfwarp(complex_t* poles, int numpoles, regular_t* zeros, int* nzeros, regular_t* gain, regular_t omega);
 
 // bilinear transform band-based singularities, (BPF/BSF.)
-static void bilinear_band_s2z(complex_t* poles, const int* numpoles, int* numzeros, regular_t* gain, const regular_t* fs)
+static void bilinear_band_s2z(complex_t* poles, const int* numpoles, complex_t* zeros, int* numzeros, regular_t* gain, const regular_t* fs)
 
 // bilinear transform in-place singularities.
 static void bilinear_s2z(complex_t* poles, const int numpoles, const int numzeros, regular_t* gain, const regular_t fs);
