@@ -45,6 +45,9 @@ void printcarray(const complex_t* x, const int len);
 
 // euler identity
 static complex_t euler(regular_t x);
+
+// real singularity check
+static int isreal(complex_t* x);
  
 // complex division
 static complex_t compdiv(complex_t x, complex_t y);
