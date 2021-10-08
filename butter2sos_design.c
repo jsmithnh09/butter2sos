@@ -606,7 +606,7 @@ static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numz
  *                                                                      *
  ************************************************************************/
 
-static void bilinear_band_s2z(complex_t* poles, const int* numpoles, int* numzeros, regular_t* gain, const regular_t* fs)
+static void bilinear_band_s2z(complex_t* poles, const int* numpoles, complex_t* zeros, int* numzeros, regular_t* gain, const regular_t* fs)
 {
   int order = *numpoles - *numzeros;        // check for any singularities at Inf.
   complex_t fs2 = (regular_t)2*fs + 0.0*I;  // 2/T equivalent.
