@@ -72,7 +72,7 @@ end
 
 for iter = 1:range
   for comp = 1:range-1
-    if (real(pd(comp)) < real(pd(comp+1))) % swap point.
+    if (abs(pd(comp)) < abs(pd(comp+1))) % swap point.
       temp = pd(comp);
       pd(comp) = pd(comp+1);
       pd(comp+1) = temp;
@@ -100,7 +100,7 @@ for iter = 1:range/2
   end
 end
 
-%% SOS formation
+%% SOS formation, (TODO: reverse for-loop for gain staging.)
 sos = repmat([1 0 0 1 0 0], N, 1);
 for iStg = 1:N
   if ((zd(2*iStg-1) == 1) && (zd(2*iStg) == 1)) % +1/+1 pair.
