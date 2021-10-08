@@ -575,6 +575,76 @@ static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numz
   *numpoles = *numzeros;
 }
 
+/************************************************************************
+ *  Function bilinear_band_s2z                                          *
+ *    Warps the pole and zero positions for bandpass/bandstop filters.  *
+ *  Inputs:                                                             *
+ *    poles (complex_t*) is the complex pole array to warp.             *
+ *    npoles (int*) is the number of poles.                             *
+ *    zeros (complex_t*) is the complex zero array to warp.             *
+ *    nzeros (int*) are the number of zeros.                            *
+ *    gain (regular_t*) is the pointer to the gain of the filter.       *
+ *                                                                      *
+ ************************************************************************/
+
+static void bilinear_band_s2z(complex_t* poles, const int* numpoles, int* numzeros, regular_t* gain, const regular_t* fs)
+{
+  int order = *numpoles - *numzeros;        // check for any singularities at Inf.
+  complex_t fs2 = (regular_t)2*fs + 0.0*I;  // 2/T equivalent.
+  complex_t pos1 = (regular_t)1.0 + 0.0*I;  // bilinear operation for (z+1)/(z-1)
+  complex_t pgain = (regular_t)1.0 + 0.0*I;
+  complex_t zgain = pgain;                  // zero singularity gain also starts at 1.
+  complex_t num, den, warp, sub;            // intermediate values.
+
+  // prod(fs2 - p)
+  for (int pInd = 0; pInd < *numpoles; pInd++)
+  {
+    sub = compsub(fs2, poles[pInd]);
+    pgain = compmult(pgain, sub);
+  }
+
+  // prod(fs2 - z)
+  for (int zInd = 0; zInd < *numzeros; zInd++)
+  {
+    sub = compsub(fs2, zeros[pInd]);
+    zgain = compmult(zgain, sub);
+  }
+
+  // k = k * real(prod(fs2-p)/prod(fs2-z))
+  *gain *= (regular_t)creal(compdiv(zgain, pgain)); // calculates gain change.
+
+  
+  // bilinear xform poles
+  for (int pInd = 0; pInd < *numpoles; pInd++)
+  {
+    warp = compdiv(poles[pInd], fs2);
+    num = compadd(pos1, warp); // 1 + z
+    den = compsub(pos1, warp); // 1 - z
+    poles[pInd] = compdiv(num, den); // (1+z)/(1-z)
+  }
+
+  // bilinear xform zeros.
+  for (int zInd = 0; zInd < *numzeros; zInd++)
+  {
+    warp = compdiv(zeros[zInd], fs2);
+    num = compadd(pos1, warp);
+    sub = compsub(pos1, warp);
+    zeros[zInd] = compdiv(num, den);
+  }
+
+  // after transform check order; bandpass may have zeros at Inf.
+  if (order > 0)
+  {
+    int newLength = *numzeros + order;
+    zeros = (complex_t*)realloc(zeros, sizeof(complex_t)*newLength);
+    for (int zInd = *numzeros; zInd < newLength; zInd++)
+    {
+      zeros[zInd] = (complex_t)-1.0 + 0.0*I; // placing at -1.
+    }
+    *numzeros = newLength;
+  }
+}
+
 /**********************************************************************
  *  Function bilinear_s2z                                             *
  *    Bilinear transformation from S to Z-plane. The transform is     *
