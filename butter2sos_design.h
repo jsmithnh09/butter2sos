@@ -20,7 +20,7 @@ typedef complex float complex_t;
 #    define M_PI 3.14159265358979323846
 #endif
 
-#define PRECISION 32
+#define BUTTER2SOS_PRECISION 32
 #define HALF_PI   (regular_t) M_PI / 2.0
 #define TWO_PI    (regular_t) M_PI * 2.0
 #define REG_PI    (regular_t) M_PI
@@ -65,6 +65,9 @@ static void hpfwarp(complex_t* poles, const int numpoles, regular_t* zeros, int*
 
 // warp lowpass to lowpass prototype
 static void lpfwarp(complex_t* poles, int numpoles, regular_t* zeros, int* nzeros, regular_t* gain, regular_t omega);
+
+// bilinear transform band-based singularities, (BPF/BSF.)
+static void bilinear_band_s2z(complex_t* poles, const int* numpoles, int* numzeros, regular_t* gain, const regular_t* fs)
 
 // bilinear transform in-place singularities.
 static void bilinear_s2z(complex_t* poles, const int numpoles, const int numzeros, regular_t* gain, const regular_t fs);
