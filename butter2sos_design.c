@@ -96,7 +96,7 @@ static inline complex_t compsub(complex_t z1, complex_t z2)
 
 static inline complex_t compsqrt(complex_t x)
 {
-  #if PRECISION == 32
+  #if BUTTER2SOS_PRECISION == 32
     return (complex_t) csqrtf(x);
   #else
     return (complex_t) csqrt(x);
@@ -114,7 +114,7 @@ static inline complex_t compsqrt(complex_t x)
 
 static inline complex_t euler(regular_t x)
 {
-  #if PRECISION == 32
+  #if BUTTER2SOS_PRECISION == 32
     return (complex_t) (cosf(x) + sinf(x)*I);
   #else
     return (complex_t) (cos(x) + sin(x)*I);
@@ -185,7 +185,7 @@ static complex_t* seedpoles(const int order, int* numpoles)
 static regular_t* mksosmatrix(const int order, const int type)
 {
   // determine the number of SOS stages.
-  #if PRECISION == 32
+  #if BUTTER2SOS_PRECISION == 32
     int N = (int)ceilf((regular_t)order/2);
   #else
     int N = (int)ceil((regular_t)order/2);
@@ -290,7 +290,7 @@ static void lpfwarp(complex_t* poles, int numpoles, regular_t* zeros, int* nzero
     poles[pInd] = (complex_t) (creal(poles[pInd]) * omega) + (cimag(poles[pInd] * omega))*I; // w .* p
   }
   // k = k * w^(order), where order = Np - Nz (no zeros in butterworth design.)
-  #if PRECISION == 32
+  #if BUTTER2SOS_PRECISION == 32
     *gain *= powf(omega, numpoles);
   #else
     *gain *= pow(omega, numpoles); 
@@ -319,7 +319,7 @@ static complex_t compdiv(complex_t x, complex_t y)
    */
   regular_t num1 = creal(x)*creal(y) + cimag(x)*cimag(y);
   regular_t num2 = cimag(x)*creal(y) - creal(x)*cimag(y);
-  #if PRECISION == 32
+  #if BUTTER2SOS_PRECISION == 32
     regular_t den = powf(creal(y), 2) + powf(cimag(y), 2);
   #else
     regular_t den = pow(creal(y), 2) + pow(cimag(y), 2);
@@ -699,7 +699,7 @@ static void bilinear_s2z(complex_t* poles, const int numpoles, const int numzero
      * for determining the gain adjustment of the zeros, there are an equal number
      * of zeros and poles. This means the "prod(Fs-z|s)" term is simply fs2^npoles.
      */
-     #if PRECISION == 32
+     #if BUTTER2SOS_PRECISION == 32
         zgain = powf((regular_t)2*fs, (regular_t)numpoles);
      #else
         zgain = pow((regular_t)2*fs, (regular_t)numpoles);
@@ -750,7 +750,7 @@ regular_t* butter(const int order, const regular_t fc, regular_t fs, const int t
   gain = 1.0;             // starting with unity gain.
   omega = 2.0 * (fc/fs);  // normalizing frequency.
 
-  #if PRECISION == 32
+  #if BUTTER2SOS_PRECISION == 32
     N = (int)ceilf((regular_t)order/2);
     warp = (regular_t)tanf(HALF_PI * omega) * 4.0;
   #else
