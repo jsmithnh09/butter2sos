@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <complex.h>
+#include <float.h>
 
 
 typedef float regular_t;
