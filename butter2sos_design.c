@@ -121,6 +121,25 @@ static inline complex_t euler(regular_t x)
   #endif
 }
 
+/*************************************************
+ *  Function isreal                              *
+ *    determine if a singularity is purely real. *
+ *  Inputs:                                      *
+ *    x (complex_t*) is a complex value.         *
+ *  Outputs:                                     *
+ *    isreal (int) is 0 if its not purely real.  *
+ * Notes:                                        *
+ *    Comparing imaginary component close to     *
+ *    to zero to remove any residue.             *
+ *************************************************/
+static int isreal(complex_t* x)
+{
+ #if BUTTER2SOS_PRECISION == 32
+  return (int)(cimag(*x) < 100*FLT_EPSILON);
+ #else
+  return (int)(cimag(*x) < 100*DBL_EPSILON);
+ #endif
+}
 
 /**********************************************************************
  * Function seedpoles                                                 *
