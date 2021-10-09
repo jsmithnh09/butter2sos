@@ -734,7 +734,7 @@ regular_t* butterband(const int order, regular_t flo, regular_t fhi, regular_t f
   int pInd, zInd, posInd = 0;
   for (int stgInd = 0; stgInd < order; stgInd++)
   {
-    pInd = 2*stgInd;
+    pInd = (npoles-2) - 2*stgInd;  // reverse pole ordering.
     zInd = 2*stgInd;               // normal order for zeros.
     posInd = (stgInd*N_SOSCOEFFS); // position in the stage.
 
@@ -788,10 +788,10 @@ regular_t* butterband(const int order, regular_t flo, regular_t fhi, regular_t f
     }
   }
 
-  // encorporate the gain into the last stage.
-  mat[(N_SOSCOEFFS*(order-1))] *= gain;
-  mat[(N_SOSCOEFFS*(order-1))+1] *= gain;
-  mat[(N_SOSCOEFFS*(order-1))+2] *= gain;
+  // encorporate the gain into the first stage.
+  mat[0] *= gain;
+  mat[1] *= gain;
+  mat[2] *= gain;
 
   // release the complex array.
   free(poles);
