@@ -36,7 +36,7 @@
  *  Output is the pointer to the linear array, or NULL on failure.*
  ******************************************************************/
 
-static regular_t* linspace(const int start, const int stop, const int step, int *outsize)
+regular_t* linspace(const int start, const int stop, const int step, int *outsize)
 {
     int m = round((int)(stop-start)/step);
     regular_t* y;
@@ -49,21 +49,6 @@ static regular_t* linspace(const int start, const int stop, const int step, int 
     return &(y[0]);
 }
 
-/***********************************************************
- *  Function lastpole                                      *
- *    The last pole position quantizes to -pole and 0.     *
- *    The characteristic polynomial is then [1, -pole, 0]. *
- * Inputs:                                                 *
- *    matrix (regular_t*) is a pointer to the SOS matrix.  *
- ***********************************************************/
-
-static void lastpole(regular_t* sosmatrix, const complex_t* lastpole)
-{
-  sosmatrix[0] = (regular_t)1.0;
-  sosmatrix[1] = (regular_t)creal(*lastpole) * -1.0;
-  sosmatrix[2] = (regular_t)0.0;
-}
-
 
 /**********************************************************
  *  Function compadd                                      *
@@ -71,7 +56,7 @@ static void lastpole(regular_t* sosmatrix, const complex_t* lastpole)
  *      z1 + z2 = (re(z1) + re(z2)) + (im(z1) + im(z2))i  *
  **********************************************************/
 
-static inline complex_t compadd(complex_t z1, complex_t z2)
+inline complex_t compadd(complex_t z1, complex_t z2)
 {
   return (complex_t)((creal(z1) + creal(z2)) + (cimag(z1) + cimag(z2))*I);
 }
@@ -82,7 +67,7 @@ static inline complex_t compadd(complex_t z1, complex_t z2)
  *      z1 - z2 = (re(z1) - re(z2)) + (im(z1) - im(z2))i  *
  **********************************************************/
 
-static inline complex_t compsub(complex_t z1, complex_t z2)
+inline complex_t compsub(complex_t z1, complex_t z2)
 {
   return (complex_t)((creal(z1) - creal(z2)) + (cimag(z1) - cimag(z2))*I);
 }
@@ -94,7 +79,7 @@ static inline complex_t compsub(complex_t z1, complex_t z2)
  *      r = abs(z), phi = angle(z).                          *
  *************************************************************/
 
-static inline complex_t compsqrt(complex_t x)
+inline complex_t compsqrt(complex_t x)
 {
   #if BUTTER2SOS_PRECISION == 32
     return (complex_t) csqrtf(x);
@@ -112,7 +97,7 @@ static inline complex_t compsqrt(complex_t x)
  *  Outputs a complex number using euler's equation.                  *
  **********************************************************************/
 
-static inline complex_t euler(regular_t x)
+inline complex_t euler(regular_t x)
 {
   #if BUTTER2SOS_PRECISION == 32
     return (complex_t) (cosf(x) + sinf(x)*I);
@@ -129,17 +114,18 @@ static inline complex_t euler(regular_t x)
  *  Outputs:                                     *
  *    isreal (int) is 0 if its not purely real.  *
  * Notes:                                        *
- *    Comparing imaginary component close to     *
- *    to zero to remove any residue.             *
+ * Comparing against a threshold to eliminate    *
+ * any imaginary residue.                        *
  *************************************************/
-static int isreal(complex_t* x)
+inline int isreal(complex_t x)
 {
  #if BUTTER2SOS_PRECISION == 32
-  return (int)(cimag(*x) < 100*FLT_EPSILON);
+  return (int)(cimag(x) < 100*FLT_EPSILON);
  #else
-  return (int)(cimag(*x) < 100*DBL_EPSILON);
+  return (int)(cimag(x) < 100*DBL_EPSILON);
  #endif
 }
+
 
 /**********************************************************************
  * Function seedpoles                                                 *
@@ -150,7 +136,7 @@ static int isreal(complex_t* x)
  *  Output is a complex_t array of poles around the unit circle.      *
  **********************************************************************/
 
-static complex_t* seedpoles(const int order, int* numpoles)
+complex_t* seedpoles(const int order, int* numpoles)
 {
   int* len = (int*)malloc(sizeof(int));
   
@@ -201,7 +187,7 @@ static complex_t* seedpoles(const int order, int* numpoles)
  *    matrix (regular_t*) is the matrix, [(N/2)x6].   *
  ******************************************************/
 
-static regular_t* mksosmatrix(const int order, const int type)
+regular_t* mksosmatrix(const int order, const int type)
 {
   // determine the number of SOS stages.
   #if BUTTER2SOS_PRECISION == 32
@@ -287,7 +273,7 @@ void printcarray(const complex_t* x, const int len)
     re = creal(x[cInd]);
     im = cimag(x[cInd]);
     
-    printf("%2.5f + %2.5fi\n", re, im);
+    printf("%p : %2.5f + %2.5fi\n", (void*)(&x + cInd), re, im);
   }
 }
       
@@ -302,7 +288,7 @@ void printcarray(const complex_t* x, const int len)
  *    gain (regular_t) is the gain change associated with moving poles. *
  ************************************************************************/
 
-static void lpfwarp(complex_t* poles, int numpoles, regular_t* zeros, int* nzeros, regular_t* gain, regular_t omega)
+void lpfwarp(complex_t* poles, int numpoles, regular_t* zeros, int* nzeros, regular_t* gain, regular_t omega)
 {
   for (int pInd = 0; pInd < numpoles; pInd++)
   {
@@ -331,7 +317,7 @@ static void lpfwarp(complex_t* poles, int numpoles, regular_t* zeros, int* nzero
  *    z (complex_t) is the result of the division.         *
  ***********************************************************/
 
-static complex_t compdiv(complex_t x, complex_t y)
+complex_t compdiv(complex_t x, complex_t y)
 {
   /* for X = a+bi and Y = c+di, Z = X/Y is equal to:
    *  ((ac + bd) / (c^2 + d^2)) + ((bc - ad)/(c^2 + d^2)i
@@ -357,7 +343,7 @@ static complex_t compdiv(complex_t x, complex_t y)
  *    z (complex_t) is the result of the multiplication.   *
  ***********************************************************/
 
-static complex_t compmult(complex_t x, complex_t y)
+complex_t compmult(complex_t x, complex_t y)
 {
   /* for X = a+bi and Y = c+di, Z = X*Y is equal to:
    *  (ac - bd) + (ad + bc)i
@@ -378,7 +364,7 @@ static complex_t compmult(complex_t x, complex_t y)
  *    gain (regular_t*) is a pointer to the gain of the filter.       *
  **********************************************************************/
 
-static void hpfwarp(complex_t* poles, const int numpoles, regular_t* zeros, int* nzeros, regular_t* gain, const regular_t omega)
+void hpfwarp(complex_t* poles, const int numpoles, regular_t* zeros, int* nzeros, regular_t* gain, const regular_t omega)
 {
   complex_t wc = omega + (regular_t)0.0*I;              // omega + 0i, since frequency is real.
   regular_t gshift = (regular_t)0.0;                    // gain change from HPF warping.
@@ -422,22 +408,19 @@ static void hpfwarp(complex_t* poles, const int numpoles, regular_t* zeros, int*
  *    Wn (regular_t*) is the center normalized frequency.               *
  ************************************************************************/
 
-static void bpfwarp(complex_t* poles, int* numpoles, regular_t* zeros, int* numzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn)
+void bpfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn)
 {
-  int order = *numpoles - *numzeros;
-  complex_t bw2 = (*bwidth)/2 + 0.0*I; // half bandwidth, bw/2.
-  complex_t bsq, bsum, pold, cWn; // intermediate complex values for warp calculations.
+  int order = *numpoles;                // need original order for the gain approximation.
+  complex_t bw2 = (*bwidth)/2 + 0.0*I;  // half bandwidth, bw/2.
+  complex_t bsq, bsum, pold, cWn;       // intermediate complex values for warp calculations.
   cWn = (regular_t)*Wn + 0.0*I;
   complex_t Wn2 = compmult(cWn, cWn); // complex Wn^2.
   
-  // p * bw/2
-  for (int pInd = 0; pInd < *numpoles; pInd++)
+  // p * bw/2 for the original data.
+  for (int pInd = 0; pInd < (*numpoles); pInd++)
   {
     poles[pInd] = (complex_t)compmult(poles[pInd], bw2);  
   }
-  
-  // reallocating to double in size.
-  poles = (complex_t*)realloc(poles, sizeof(complex_t)*(2*(*numpoles)));
   
   // [1,2,3,4] -> [1, 0, 2, 0, 3, 0, 4, 0]. expand the array.
   int oldInd = (*numpoles)-1;
@@ -449,34 +432,25 @@ static void bpfwarp(complex_t* poles, int* numpoles, regular_t* zeros, int* numz
   }
   
   // compute the p +/- sqrt(p^2 - Wn^2) for each group.
-  for (int pInd = 0; pInd < *numpoles; pInd++)
+  for (int pInd = 0; pInd < (*numpoles); pInd++)
   {
     // extract pole intermediate values for BPF warping.
     pold = poles[2*pInd];
-    bsum = compsub(compmult(pold, pold), Wn2); // p^2 - Wn^2
-    bsq = csqrt(bsum); // sqrt(p^2 - Wn^2)
+    bsum = (complex_t)compsub(compmult(pold, pold), Wn2); // p^2 - Wn^2
+    bsq = (complex_t)csqrt(bsum); // sqrt(p^2 - Wn^2)
     
     // p(i)   = p(i) + sqrt(p(i)^2 - Wn^2).
     // p(i+1) = p(i) - sqrt(p(i)^2 - Wn^2).
     
-    poles[2*pInd] = compadd(pold, bsq);
-    poles[2*pInd+1] = compsub(pold,  bsq);
+    poles[2*pInd] = (complex_t)compadd(pold, bsq);
+    poles[2*pInd+1] = (complex_t)compsub(pold,  bsq);
   }
   
   // indicate the new number of poles from this process.
   *numpoles = (int)2*(*numpoles);
-  
-  // since no zeros were seeded, create S-plane zeros.
-  zeros = (complex_t*)malloc(sizeof(complex_t)*order);
-  for (int zInd = 0; zInd < order; zInd++)
-  {
-      zeros[zInd] = (complex_t)0.0 + 0.0*I;
-  }
-  *numzeros = order;
-  
+
   // k = k * bw^(order)
   *gain *= (regular_t)pow(*bwidth, order);
-  
 }
 
 
@@ -491,9 +465,9 @@ static void bpfwarp(complex_t* poles, int* numpoles, regular_t* zeros, int* numz
  *      BPF warping.                                        *
  ************************************************************/
 
-static void polesort(complex_t* poles, int* numpoles, int* order)
+void polesort(complex_t* poles, int numpoles, int order)
 {
-  int len = (*order % 2) ? *numpoles-2 : *numpoles;
+  int len = (order % 2) ? numpoles-2 : numpoles;
   
   // bubble sorting the poles into descending distance from unit circle.
   complex_t temp;
@@ -511,14 +485,13 @@ static void polesort(complex_t* poles, int* numpoles, int* order)
   }
   
   // flip the real poles in the case of an odd order bandpass.
-  if ((*order % 2) && (creal(poles[len]) < creal(poles[len+1])))
+  if ((order % 2) && (creal(poles[len]) < creal(poles[len+1])))
   {
     temp = poles[len];
     poles[len] = poles[len+1];
     poles[len+1] = temp;
   }
 }
-
 
 /**************************************************************
  *  Function bsfwarp                                          *
@@ -537,9 +510,8 @@ static void polesort(complex_t* poles, int* numpoles, int* order)
  *      repeating complex conjugates.                         *
  **************************************************************/
 
-static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numzeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn)
+void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, regular_t* gain, const regular_t* bwidth, const regular_t* Wn)
 {
-  int order = *numpoles - *numzeros;
   complex_t bw2 = (*bwidth / 2.0) + 0.0*I;
   complex_t pold, bsum, bsq;
   complex_t Wn2 = compmult((complex_t)*Wn+0.0*I, (complex_t)*Wn+0.0*I); // complex Wn^2.
@@ -554,13 +526,6 @@ static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numz
     poles[pInd] = compdiv(bw2, poles[pInd]); // (bw/2) ./ p
   }
   
-  // resize the poles and zeros.
-  poles = (complex_t*)realloc(poles, sizeof(complex_t)*2*(*numpoles));
-  
-  // first allocation of zeros.
-  zeros = (complex_t*)malloc(sizeof(complex_t)*2*(*numpoles));
-  *numzeros = (int)2*(*numpoles);
-  
   // expanding [1, 2, 3, 4] -> [1, 0, 2, 0, 3, 0, 4, 0].
   int oldInd = (*numpoles)-1;
   for (int pInd = 2*(*numpoles)-2; pInd > 0; pInd-=2)
@@ -570,7 +535,7 @@ static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numz
     poles[oldInd--] = (complex_t)0.0 + 0.0*I;
   }
   
-  // using the old number of poles to loop over conjugate pairs, (0+/-j*Wn).
+  // zeros already same length as poles, (0+/-j*Wn).
   for (int zInd = 0; zInd < *numpoles; zInd++)
   {
     zeros[2*zInd] = (complex_t)0.0 + (*Wn)*I;
@@ -589,9 +554,6 @@ static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numz
     poles[2*pInd] = compadd(pold, bsq);
     poles[2*pInd+1] = compsub(pold, bsq);
   }
-  
-  // indicate the new number of poles, (zero-length matches.)
-  *numpoles = *numzeros;
 }
 
 /************************************************************************
@@ -606,13 +568,12 @@ static void bsfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numz
  *                                                                      *
  ************************************************************************/
 
-static void bilinear_band_s2z(complex_t* poles, const int* numpoles, complex_t* zeros, int* numzeros, regular_t* gain, const regular_t* fs)
+void bilinear_band_s2z(complex_t* poles, const int* numpoles, complex_t* zeros, int* numzeros, regular_t* gain, const regular_t* fs)
 {
-  int order = *numpoles - *numzeros;        // check for any singularities at Inf.
-  complex_t fs2 = (regular_t)2*fs + 0.0*I;  // 2/T equivalent.
+  complex_t fs2 = (regular_t)2*(*fs) + 0.0*I;  // 2/T equivalent.
   complex_t pos1 = (regular_t)1.0 + 0.0*I;  // bilinear operation for (z+1)/(z-1)
   complex_t pgain = (regular_t)1.0 + 0.0*I;
-  complex_t zgain = pgain;                  // zero singularity gain also starts at 1.
+  complex_t zgain = (regular_t)1.0 + 0.0*I; // zero singularity gain also starts at 1.
   complex_t num, den, warp, sub;            // intermediate values.
 
   // prod(fs2 - p)
@@ -625,15 +586,13 @@ static void bilinear_band_s2z(complex_t* poles, const int* numpoles, complex_t* 
   // prod(fs2 - z)
   for (int zInd = 0; zInd < *numzeros; zInd++)
   {
-    sub = compsub(fs2, zeros[pInd]);
+    sub = compsub(fs2, zeros[zInd]);
     zgain = compmult(zgain, sub);
   }
 
   // k = k * real(prod(fs2-p)/prod(fs2-z))
   *gain *= (regular_t)creal(compdiv(zgain, pgain)); // calculates gain change.
-
   
-  // bilinear xform poles
   for (int pInd = 0; pInd < *numpoles; pInd++)
   {
     warp = compdiv(poles[pInd], fs2);
@@ -647,21 +606,191 @@ static void bilinear_band_s2z(complex_t* poles, const int* numpoles, complex_t* 
   {
     warp = compdiv(zeros[zInd], fs2);
     num = compadd(pos1, warp);
-    sub = compsub(pos1, warp);
+    den = compsub(pos1, warp);
     zeros[zInd] = compdiv(num, den);
   }
+}
 
-  // after transform check order; bandpass may have zeros at Inf.
-  if (order > 0)
+
+/***************************************************************
+ *  Function butterband                                        *
+ *    This is the principal entry point for designing bandpass *
+ *    or bandstop SOS filter matrices.                         *
+ *                                                             *
+ * Inputs:                                                     *
+ *  order (int) is the butterworth filter order.               *
+ *  Flo (regular_t) is the lower corner frequency.             *
+ *  Fhi (regular_t) is the upper corner frequency.             *
+ *  Fs (regular_t) is the sampling rate to design at.          *
+ *  type (int) indicates 0=BPF, 1=BSF.                         *
+ * Outputs:                                                    *
+ *  matrix (regular_t*) is a pointer to the SOS matrix.        *
+ ***************************************************************/
+
+regular_t* butterband(const int order, regular_t flo, regular_t fhi, regular_t fs, const int type)
+{
+  
+  // check if the corner frequencies need to swap, or if they're equal.
+  regular_t swap;
+  if (flo > fhi)
   {
-    int newLength = *numzeros + order;
-    zeros = (complex_t*)realloc(zeros, sizeof(complex_t)*newLength);
-    for (int zInd = *numzeros; zInd < newLength; zInd++)
-    {
-      zeros[zInd] = (complex_t)-1.0 + 0.0*I; // placing at -1.
-    }
-    *numzeros = newLength;
+    swap = flo;
+    flo = fhi;
+    fhi = swap;
   }
+  else if (flo == fhi) 
+  {
+    printf("ERROR: corner frequencies are equivalent.\n");
+    return (regular_t*)NULL;
+  }
+
+  // check if the upper frequency exceeds nyquist.
+  if (fhi >= fs/2.0)
+  {
+    printf("ERROR: upper corner frequency exceeds Nyquist.\n");
+    return (regular_t*)NULL;
+  }
+
+  int npoles, nzeros = 0;
+  regular_t* mat;
+  complex_t* poles = (complex_t*)NULL;
+  complex_t* zeros = (complex_t*)NULL;
+  regular_t gain, w1, w2, bwidth, Wn;
+
+  gain = 1.0;
+  w1 = 2.0 * (flo/fs);
+  w2 = 2.0 * (fhi/fs);
+
+  #if BUTTER2SOS_PRECISION == 32
+    w1 = (regular_t)tanf(HALF_PI * w1) * 4.0;
+    w2 = (regular_t)tanf(HALF_PI * w2) * 4.0;
+  #else
+    N = (int)ceil((regular_t)order/2);
+    w1 = (regular_t)tan(HALF_PI * w1) * 4.0;
+    w2 = (regular_t)tan(HALF_PI * w2) * 4.0;
+  #endif
+
+  bwidth = w2 - w1;     // normalized bandwidth
+  Wn = sqrt(w1 * w2);   // center frequency
+  fs = 2.0;             // normalized Wq = 1, resetting Fs.
+
+  // seed the poles around the unit circle.
+  poles = seedpoles(order, &npoles);
+
+  // make the SOS matrix.
+  mat = (regular_t*)malloc(sizeof(regular_t)*N_SOSCOEFFS*order);
+
+  // double the length for the BPF/BSF to manage.
+  poles = (complex_t*)realloc(poles, sizeof(complex_t)*2*npoles);
+  if (!type)
+  {
+
+    // bandpass warp.
+    bpfwarp(poles, &npoles, zeros, &nzeros, &gain, &bwidth, &Wn);
+
+    // since no zeros were seeded, create S-plane zeros, (making same length as poles.)
+    zeros = (complex_t*)malloc(sizeof(complex_t)*npoles);
+    nzeros = npoles/2.0;
+
+    // bilinear warps poles to [+1,+1,....-1,-1].
+    for (int zInd = 0; zInd < npoles; zInd++)
+    {
+      zeros[zInd] = zInd < nzeros ? (complex_t)0.0 + 0.0*I : (complex_t)-1.0 + 0.0;
+    }
+  }
+  else
+  {
+    // bandstop filter warp. BSF will place complex conjugates in the zeros array.
+    nzeros = npoles*2;
+    zeros = (complex_t*)malloc(sizeof(complex_t)*nzeros);
+    bsfwarp(poles, &npoles, zeros, &gain, &bwidth, &Wn);
+    npoles *= 2; // only change the number after having used the loop in BSF warp.
+
+  }
+
+  printf("S-plane poles:\n");
+  printcarray(poles, npoles);
+  printf("S-plane zeros:\n");
+  printcarray(zeros, nzeros);
+
+
+  // bilinear transform.
+  bilinear_band_s2z(poles, &npoles, zeros, &nzeros, &gain, &fs);
+
+  // sort the poles after warping to Z-plane.
+  polesort(poles, npoles, order);
+
+  /*
+   * sos matrix quantization. We either have real poles or
+   * repeating complex conjugates based on the filter type.
+   */
+  int pInd, zInd, posInd = 0;
+  for (int stgInd = 0; stgInd < order; stgInd++)
+  {
+    pInd = 2*stgInd;
+    zInd = 2*stgInd;               // normal order for zeros.
+    posInd = (stgInd*N_SOSCOEFFS); // position in the stage.
+
+    // zero check
+    if (isreal(zeros[zInd]) && isreal(zeros[zInd+1])) 
+    {
+      if ((creal(zeros[zInd]) == -1) && (creal(zeros[zInd+1]) == -1)) 
+      {
+        // [-1, -1] -> [1, 2, 1]
+        mat[posInd++] = 1.0;
+        mat[posInd++] = 2.0;
+        mat[posInd++] = 1.0;
+      }
+      else if((creal(zeros[zInd]) == 1) && (creal(zeros[zInd+1]) == -1)) 
+      {
+        // [1, -1] -> [1, 0, -1]
+        mat[posInd++] = 1.0;
+        mat[posInd++] = 0.0;
+        mat[posInd++] = -1.0;
+      }
+      else if((creal(zeros[zInd]) == 1) && (creal(zeros[zInd+1]) == 1)) 
+      {
+        // [1, 1] -> [1, -2, 1]
+        mat[posInd++] = 1.0;
+        mat[posInd++] = -2.0;
+        mat[posInd++] = 1.0;
+      }
+    }
+    else 
+    {
+      // complex conjugates.
+      mat[posInd++] = 1.0;
+      mat[posInd++] = -2.0 * creal(zeros[zInd]);
+      mat[posInd++] = creal(compmult(zeros[zInd], conj(zeros[zInd])));
+    }
+
+    // a0 implicitly 1.
+    mat[posInd++] = 1.0;
+
+
+    // pole check
+    if (isreal(poles[pInd]) && isreal(poles[pInd+1])) 
+    {
+      mat[posInd++] = -1.0*creal(poles[pInd]) + -1.0*creal(poles[pInd]); // -p1 + -p2
+      mat[posInd] = (-1.0*creal(poles[pInd])) * (-1.0*creal(poles[pInd])); // -p1 * -p2
+    }
+    else 
+    {
+      mat[posInd++] = -2.0*creal(poles[pInd]);
+      mat[posInd] = creal(compmult(poles[pInd], conj(poles[pInd])));
+    }
+  }
+
+  // encorporate the gain into the last stage.
+  mat[(N_SOSCOEFFS*(order-1))] *= gain;
+  mat[(N_SOSCOEFFS*(order-1))+1] *= gain;
+  mat[(N_SOSCOEFFS*(order-1))+2] *= gain;
+
+  // release the complex array.
+  free(poles);
+  free(zeros);
+
+  return &(mat[0]);
 }
 
 /**********************************************************************
@@ -682,11 +811,9 @@ static void bilinear_band_s2z(complex_t* poles, const int* numpoles, complex_t* 
  *                                                                    *
  **********************************************************************/
 
-static void bilinear_s2z(complex_t* poles, const int numpoles, const int numzeros, regular_t* gain, const regular_t fs)
+void bilinear_s2z(complex_t* poles, const int numpoles, const int numzeros, regular_t* gain, const regular_t fs)
 {
-  int order = numpoles - numzeros;
   complex_t fs2 = (regular_t)2*fs + 0.0*I;  // 2/T equivalent in bilinear xform.
-  complex_t pos1 = (regular_t)1.0 + 0.0*I;  // complex +1.
   complex_t pgain = (regular_t)1.0 + 0.0*I; // complex +1, (starting value for pole gain shift.)
   complex_t num, den, warp, psub;           // intermediate values for bilinear xform.
   regular_t zgain;                          // gain-shift for zeros.
@@ -733,7 +860,6 @@ static void bilinear_s2z(complex_t* poles, const int numpoles, const int numzero
   // k = k * real(prod(Fs-z)/prod(Fs-p))
   *gain *= creal(compdiv((complex_t)(zgain + 0.0*I), pgain));
 }
-
 
 /****************************************************************
  * Function butter                                              *
