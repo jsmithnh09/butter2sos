@@ -655,6 +655,7 @@ regular_t* butterband(const int order, regular_t flo, regular_t fhi, regular_t f
   regular_t* mat;
   complex_t* poles = (complex_t*)NULL;
   complex_t* zeros = (complex_t*)NULL;
+  complex_t* spoles = (complex_t*)NULL;
   regular_t gain, w1, w2, bwidth, Wn;
 
   gain = 1.0;
@@ -675,13 +676,19 @@ regular_t* butterband(const int order, regular_t flo, regular_t fhi, regular_t f
   fs = 2.0;             // normalized Wq = 1, resetting Fs.
 
   // seed the poles around the unit circle.
-  poles = seedpoles(order, &npoles);
+  spoles = seedpoles(order, &npoles);
 
   // make the SOS matrix.
   mat = (regular_t*)malloc(sizeof(regular_t)*N_SOSCOEFFS*order);
 
   // double the length for the BPF/BSF to manage.
-  poles = (complex_t*)realloc(poles, sizeof(complex_t)*2*npoles);
+  poles = (complex_t*)malloc(sizeof(complex_t)*2*npoles);
+  for (int pInd = 0; pInd < npoles; pInd++)
+  {
+      poles[pInd] = spoles[pInd];
+  }
+  free(spoles);
+    
   if (!type)
   {
 
