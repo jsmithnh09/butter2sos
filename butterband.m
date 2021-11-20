@@ -1,7 +1,8 @@
 function sos = butterband(N, w1, w2, Fs, type)
     % BUTTERBAND designs bandpass/bandstop Butterworth filters.
     %   SOS = BUTTERBAND(N, W1, W2, FS, TYPE)
-    %       N (scalar) is the order of the filter. This will match the number of biquad stages in the SOS matrix.
+    %       N (scalar) is the order of the filter. This will match the number of biquad 
+    %           stages in the SOS matrix.
     %       W1 (scalar) is the lower corner frequency closer to DC.
     %       W2 (scalar) is the upper corner frequency towards Nyquist.
     %       Fs (scalar) is the discrete sampling rate of the digital filter.
@@ -162,6 +163,19 @@ for iter = 1:range/2
 end
 
 end % static_polesort
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [zd, pd, kd] = static_bilinear(z, p, k, Fs)
+    % bilinear ZPK, H(z) = H(s) where s = 2*Fs*(z+1)/(z-1)
+    ord = length(p) - length(z);
+    Ft = 2*Fs; % 2/T equivalent in bilinear xform.
+    pd = (1+p/Ft)./(1-p/Ft);
+    zd = (1+z/Ft)./(1-z/Ft);
+    kd = k * real(prod(Ft-z)./prod(Ft-p));
+    if (ord > 0) % zeros at infinity moved to Nyq, (-1, 0.)
+      zd = [zd; -ones(ord, 1)];
+    end
+    return;
+end
 
 
 
