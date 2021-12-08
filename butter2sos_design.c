@@ -27,7 +27,7 @@
 /******************************************************************
  * Function linspace                                              *
  *    Create a linearly spaced element vector. This is for        *
- *    generating poles around the unit circle.                    *
+ *    generating poles on the S-plane axis.                       *
  *  Inputs:                                                       *
  *    start (int) is the starting element                         *
  *    end (int) is the ending element                             *
