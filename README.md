@@ -9,6 +9,10 @@ To build:
 ```
 gcc -std=c99 butter2sos_design.c butter2sos.c -o butter2sos
 ```
+To build a shared library for interfacing with Julia, (via `jl_butter` and `jl_butterband`):
+```
+gcc -std=c99 butter2sos_design.c -shared -o butterlib.dll
+```
 
 Based on the target filter type, the zero positions are already known,
 and the biquad coefficients are then easier to evaluate.
