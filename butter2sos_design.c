@@ -998,3 +998,21 @@ regular_t* butter(const int order, const regular_t fc, regular_t fs, const int t
   }
   return &(mat[0]);
 }
+
+/*************************************************************
+ * Function jl_butter                                        *
+ *  Julia API that requires address of pre-allocated memory. *
+ *************************************************************/ 
+
+void jl_butter(const int order, const float fc, const float fs, const int type, float *mat)
+{
+  int N, ncoeffs;
+  regular_t *sos;
+  sos = butter(order, fc, fs, type);
+  N = (order % 2) ? (order-1)/2 + 1 : order/2;
+  ncoeffs = N * N_SOSCOEFFS;
+  for (int iC = 0; iC < ncoeffs; iC++) {
+    mat[iC] = (float)sos[iC];
+  }
+  free(sos);
+}

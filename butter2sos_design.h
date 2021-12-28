@@ -92,4 +92,7 @@ regular_t* butter(const int order, const regular_t fc, regular_t fs, const int t
 // band-based design function
 regular_t* butterband(const int order, regular_t flo, regular_t fhi, regular_t fs, const int type);
 
+// julia API function
+void jl_butter(const int order, const float fc, const float fs, const int type, float* sos);
+
 #endif
