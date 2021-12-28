@@ -30,13 +30,14 @@ function butter2sos(order::Integer, Fc::Real, Fs::Real; type::String="lowpass")
     sosmat = Matrix{Float32}(transpose(reshape(matptr, (Nstages, 6))))
     Vb = Vector{Biquad{:z, Float32}}(undef, Nstages)
 
-    # normalize the last stage and extract the gain, (C-code embeds gain in final stage.)
-    k = sosmat[end,1]
-    sosmat[end,1:3] ./= k
+    K, kstg = 1, 1
     for iStg = 1:Nstages
+        kstg = sosmat[iStg,1]
+        K *= kstg
+        sosmat[iStg,1:3] ./= kstg
         Vb[iStg] = Biquad{:z, Float32}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
     end
-    SecondOrderSections(Vb, k)
+    SecondOrderSections(Vb, K)
 end
         
 """
@@ -66,7 +67,7 @@ function butterband(order::Integer, Fl::Real, Fh::Real, Fs::Real; type::String="
     ccall((:jl_butterband, "butterlib"), Cvoid, (Cint, Cfloat, Cfloat, Cfloat, Cint, Ptr{Float32}), order, Fl, Fh, Fs, ftype, matptr)
     sosmat = Matrix{Float32}(transpose(reshape(matptr, (Nstages, 6))))
     Vb = Vector{Biquad{:z, Float32}}(undef, Nstages)
-    K, kstg = 1
+    K, kstg = 1, 1
     for iStg = 1:Nstages
         kstg = sosmat[iStg,1]
         K *= kstg
