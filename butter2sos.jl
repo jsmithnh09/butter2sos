@@ -27,7 +27,16 @@ function butter2sos(order::Integer, Fc::Real, Fs::Real; type::String="lowpass")
 
     # butterlib.dll has both butter and butterband available.
     ccall((:jl_butter, "butterlib"), Cvoid, (Cint, Cfloat, Cfloat, Cint, Ptr{Float32}), order, Fc, Fs, ftype, matptr)
-    Matrix{Float32}(transpose(reshape(matptr, (Nstages, 6))))
+    sosmat = Matrix{Float32}(transpose(reshape(matptr, (Nstages, 6))))
+    Vb = Vector{Biquad{:z, Float32}}(undef, Nstages)
+
+    # normalize the last stage and extract the gain, (C-code embeds gain in final stage.)
+    k = sosmat[end,1]
+    sosmat[end,1:3] ./= k
+    for iStg = 1:Nstages
+        Vb[iStg] = Biquad{:z, Float32}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
+    end
+    SecondOrderSections(Vb, k)
 end
         
 

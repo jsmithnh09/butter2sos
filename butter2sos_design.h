@@ -95,4 +95,7 @@ regular_t* butterband(const int order, regular_t flo, regular_t fhi, regular_t f
 // julia API function
 void jl_butter(const int order, const float fc, const float fs, const int type, float* sos);
 
+// julia API for bandpass/bandstop
+void jl_butterband(const int order, const float flo, const float fhi, const float fs, const int type, float *mat);
+
 #endif
