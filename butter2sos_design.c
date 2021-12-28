@@ -27,7 +27,7 @@
 /******************************************************************
  * Function linspace                                              *
  *    Create a linearly spaced element vector. This is for        *
- *    generating poles around the unit circle.                    *
+ *    generating poles on the S-plane axis.                       *
  *  Inputs:                                                       *
  *    start (int) is the starting element                         *
  *    end (int) is the ending element                             *
@@ -129,25 +129,25 @@ inline int isreal(complex_t x)
 
 /**********************************************************************
  * Function seedpoles                                                 *
- *    Generates S-plane poles on the unit circle. If the              *
+ *    Generates S-plane poles on the re/im axis.  If the              *
  *    order is odd, the last pole is located at (-1, 0) pre-warping.  *
  *  Inputs:                                                           *
  *    order (int) indicates the filter order.                         *
- *  Output is a complex_t array of poles around the unit circle.      *
+ *  Output is a complex_t array of poles on the S-plane.              *
  **********************************************************************/
 
 complex_t* seedpoles(const int order, int* numpoles)
 {
   int* len = (int*)malloc(sizeof(int));
   
-  // positions around the unit circle [1]
+  // determine positions on the Re/Im axis [1]
   regular_t* points = linspace((int)1, order-1, (int)2, len);
   for (int pInd = 0; pInd < *len; pInd++)
   {
     points[pInd] = REG_PI * (points[pInd]/(2*order)) + HALF_PI;
   }
   
-  // allocate the complex positions around the circle. 
+  // allocate the complex positions.
   int Npoles = (order%2) ? (int)2*(*len)+1 : (int)2*(*len);
   complex_t* poles = (complex_t*)malloc(sizeof(complex_t) * Npoles);
 
