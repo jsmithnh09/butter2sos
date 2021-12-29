@@ -1,11 +1,12 @@
+using DSP
+
 """
     sos = butter2sos(order, Fc, Fs, type="lowpass")
 
 Z-domain IIR Butterworth design of Lowpass/Highpass/Allpass filters.
 `Fc` indicates the corner "-3 dB" natural frequency point, whereas `Fs` indicates
 the discrete sample rate and `order` specifies the cascade filter order. The returned
-`sos` matrix contains the raw second-order section coefficients that can be used to
-construct a `SecondOrderSection` type.
+`sos` SecondOrderSection type is compatible with DSP.jl.
 """
 function butter2sos(order::Integer, Fc::Real, Fs::Real; type::String="lowpass")
     (Fc > 0 && Fs > 0) || error("Fc and/or Fs must be greater than 0 Hz (DC).")
@@ -30,10 +31,11 @@ function butter2sos(order::Integer, Fc::Real, Fs::Real; type::String="lowpass")
     sosmat = Matrix{Float32}(transpose(reshape(matptr, (Nstages, 6))))
     Vb = Vector{Biquad{:z, Float32}}(undef, Nstages)
 
-    K, kstg = 1, 1
+    # normalize by leading coefficient.
+    K = prod(sosmat[:,1])
+    kstg = 1
     for iStg = 1:Nstages
         kstg = sosmat[iStg,1]
-        K *= kstg
         sosmat[iStg,1:3] ./= kstg
         Vb[iStg] = Biquad{:z, Float32}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
     end
@@ -67,10 +69,10 @@ function butterband(order::Integer, Fl::Real, Fh::Real, Fs::Real; type::String="
     ccall((:jl_butterband, "butterlib"), Cvoid, (Cint, Cfloat, Cfloat, Cfloat, Cint, Ptr{Float32}), order, Fl, Fh, Fs, ftype, matptr)
     sosmat = Matrix{Float32}(transpose(reshape(matptr, (Nstages, 6))))
     Vb = Vector{Biquad{:z, Float32}}(undef, Nstages)
-    K, kstg = 1, 1
+    kstg = 1
+    K = prod(sosmat[:,1])
     for iStg = 1:Nstages
         kstg = sosmat[iStg,1]
-        K *= kstg
         sosmat[iStg,1:3] ./= kstg
         Vb[iStg] = Biquad{:z, Float32}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
     end
