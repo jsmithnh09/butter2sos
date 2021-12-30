@@ -715,12 +715,6 @@ regular_t* butterband(const int order, regular_t flo, regular_t fhi, regular_t f
 
   }
 
-  printf("S-plane poles:\n");
-  printcarray(poles, npoles);
-  printf("S-plane zeros:\n");
-  printcarray(zeros, nzeros);
-
-
   // bilinear transform.
   bilinear_band_s2z(poles, &npoles, zeros, &nzeros, &gain, &fs);
 
