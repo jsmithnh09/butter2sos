@@ -1017,11 +1017,10 @@ void jl_butter(const int order, const float fc, const float fs, const int type, 
  *************************************************************/
 void jl_butterband(const int order, const float flo, const float fhi, const float fs, const int type, float *mat)
 {
-  int N, ncoeffs;
+  int ncoeffs;
   regular_t *sos;
   sos = butterband(order, flo, fhi, fs, type);
-  N = (order % 2) ? (order-1)/2 + 1 : order/2;
-  ncoeffs = N * N_SOSCOEFFS;
+  ncoeffs = order * N_SOSCOEFFS; // bandpass/bandstop order is the same number of biquads.
   for (int iC = 0; iC < ncoeffs; iC++) {
     mat[iC] = (float)sos[iC];
   }
