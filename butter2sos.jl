@@ -31,6 +31,7 @@ function butter2sos(order::Integer, Fc::Real, Fs::Real, type::Symbol=:lowpass)
         sosmat[iStg,1:3] ./= kstg
         Vb[iStg] = Biquad{:z, Float32}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
     end
+    !any(isnan, sosmat) || error("Filter specs ($(order), $(Fc), $(Fs), $(type)) produced a gain of zero.")
     SecondOrderSections(Vb, K)
 end
         
@@ -62,6 +63,7 @@ function butterband(order::Integer, Fl::Real, Fh::Real, Fs::Real, type::Symbol=:
         sosmat[iStg,1:3] ./= kstg
         Vb[iStg] = Biquad{:z, Float32}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
     end
+    !any(isnan, sosmat) || error("Filter specs ($(order), $(Fl), $(Fh), $(Fs), $(type)) produced a gain of zero.")
     SecondOrderSections(Vb,K)
 end
     

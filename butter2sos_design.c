@@ -450,7 +450,11 @@ void bpfwarp(complex_t* poles, int* numpoles, complex_t* zeros, int* numzeros, r
   *numpoles = (int)2*(*numpoles);
 
   // k = k * bw^(order)
-  *gain *= (regular_t)pow(*bwidth, order);
+  #if BUTTER2SOS_PRECISION == 32
+    *gain *= (regular_t)powf(*bwidth, order);
+  #else
+    *gain *= (regular_t)pow(*bwidth, order);
+  #endif
 }
 
 
