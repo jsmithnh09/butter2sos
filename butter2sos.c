@@ -19,8 +19,8 @@
 int main(int argc, char const *argv[])
 {
 	int order, type, N;
-	regular_t fs, fc;
-	regular_t* mat;
+	real64_t fs, fc;
+	real64_t* mat;
   
   type = 0;               // 0=LPF, 1=HPF, 2=APF.
 	fs = 44100.0;           // sampling rate.

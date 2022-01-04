@@ -11,7 +11,7 @@
 void mexFunction(int nlhs, mxArray *plhs[], const int nrhs, const mxArray *prhs[])
 {
     int order, idx, numbiquads, stgIdx, coefIdx, type;
-    float fc1, fc2, fs, *mat;
+    double fc1, fc2, fs, *mat;
     double *buff;
 
     // indicate help if no arguments are provided for the function.
@@ -31,9 +31,9 @@ void mexFunction(int nlhs, mxArray *plhs[], const int nrhs, const mxArray *prhs[
         return;
     }
     order = (int)(*mxGetPr(prhs[0]));
-    fc1 = (regular_t)(*mxGetPr(prhs[1]));
-    fc2 = (regular_t)(*mxGetPr(prhs[2]));
-    fs = (regular_t)(*mxGetPr(prhs[3]));
+    fc1 = (real64_t)(*mxGetPr(prhs[1]));
+    fc2 = (real64_t)(*mxGetPr(prhs[2]));
+    fs = (real64_t)(*mxGetPr(prhs[3]));
     type = (int)(*mxGetPr(prhs[4]));
     
     if (order <= 0) {
@@ -46,7 +46,7 @@ void mexFunction(int nlhs, mxArray *plhs[], const int nrhs, const mxArray *prhs[
     numbiquads = order; // same number of stages as the requested order.
 
     // generate the SOS matrix.
-    mat = (regular_t*)butterband(order, fc1, fc2, fs, type);
+    mat = (real64_t*)butterband(order, fc1, fc2, fs, type);
     if (mat[0] == NULL) {
         mexErrMsgTxt("BUTTERBAND_MEX butter function failure. Unable to construct SOS matrix.\n");
         return;

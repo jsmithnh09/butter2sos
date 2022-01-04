@@ -13,7 +13,7 @@ function butter2sos(order::Integer, Fc::Real, Fs::Real, type::Symbol=:lowpass)
     (Fc <= Fs/2) || throw(ArgumentError("Upperband `Fhi` cannot exceed Nyquist."))
     (type ∈ [:lowpass, :highpass, :allpass]) || throw(ArgumentError("type must indicate ':lowpass', ':highpass', or ':allpass.'"))
     Nstages = ceil(Int, order/2)
-    matptr = Vector{Float32}(undef, Nstages*6)
+    matptr = Vector{Float64}(undef, Nstages*6)
     if (type == :lowpass)
         ftype = Int(0)
     elseif (type == :highpass)
@@ -21,15 +21,15 @@ function butter2sos(order::Integer, Fc::Real, Fs::Real, type::Symbol=:lowpass)
     else
         ftype = Int(2)
     end
-    ccall((:jl_butter, "butterlib"), Cvoid, (Cint, Cfloat, Cfloat, Cint, Ptr{Float32}), order, Fc, Fs, ftype, matptr)
-    sosmat = Matrix{Float32}(transpose(reshape(matptr, (6, Nstages))))
-    Vb = Vector{Biquad{:z, Float32}}(undef, Nstages)
+    ccall((:jl_butter, "butterlib"), Cvoid, (Cint, Cdouble, Cdouble, Cint, Ptr{Float64}), order, Fc, Fs, ftype, matptr)
+    sosmat = Matrix{Float64}(transpose(reshape(matptr, (6, Nstages))))
+    Vb = Vector{Biquad{:z, Float64}}(undef, Nstages)
     K = prod(sosmat[:,1]) # normalize by lead coefficient and extract gain, (whichever ordering.)
     kstg = 1
     for iStg = 1:Nstages
         kstg = sosmat[iStg,1]
         sosmat[iStg,1:3] ./= kstg
-        Vb[iStg] = Biquad{:z, Float32}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
+        Vb[iStg] = Biquad{:z, Float64}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
     end
     !any(isnan, sosmat) || error("Filter specs ($(order), $(Fc), $(Fs), $(type)) produced a gain of zero.")
     SecondOrderSections(Vb, K)
@@ -51,17 +51,17 @@ function butterband(order::Integer, Fl::Real, Fh::Real, Fs::Real, type::Symbol=:
         Fl, Fh = Fh, Fl
     end
     ((Fl > 0 && Fl < Fs/2) && (Fh > 0 && Fh < Fs/2)) || throw(ArgumentError("Upper/lower bounds must be in range (0, Fs/2]."))
-    matptr = Vector{Float32}(undef, order*6)
+    matptr = Vector{Float64}(undef, order*6)
     ftype = (type == :bandpass) ? Int(0) : Int(1)
-    ccall((:jl_butterband, "butterlib"), Cvoid, (Cint, Cfloat, Cfloat, Cfloat, Cint, Ptr{Float32}), order, Fl, Fh, Fs, ftype, matptr)
-    sosmat = Matrix{Float32}(transpose(reshape(matptr, (6, order))))
-    Vb = Vector{Biquad{:z, Float32}}(undef, order)
+    ccall((:jl_butterband, "butterlib"), Cvoid, (Cint, Cdouble, Cdouble, Cdouble, Cint, Ptr{Float64}), order, Fl, Fh, Fs, ftype, matptr)
+    sosmat = Matrix{Float64}(transpose(reshape(matptr, (6, order))))
+    Vb = Vector{Biquad{:z, Float64}}(undef, order)
     kstg = 1
     K = prod(sosmat[:,1])
     for iStg = 1:order
         kstg = sosmat[iStg,1]
         sosmat[iStg,1:3] ./= kstg
-        Vb[iStg] = Biquad{:z, Float32}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
+        Vb[iStg] = Biquad{:z, Float64}(sosmat[iStg,1], sosmat[iStg,2], sosmat[iStg,3], sosmat[iStg,5], sosmat[iStg,6])
     end
     !any(isnan, sosmat) || error("Filter specs ($(order), $(Fl), $(Fh), $(Fs), $(type)) produced a gain of zero.")
     SecondOrderSections(Vb,K)

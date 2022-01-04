@@ -11,7 +11,7 @@
 void mexFunction(int nlhs, mxArray *plhs[], const int nrhs, const mxArray *prhs[])
 {
     int order, type, idx, nbiquads, stgIdx, coefIdx;
-    float fc, fs, *mat;
+    double fc, fs, *mat;
     double *buff;
 
     // indicate help if no arguments are provided for the function.
@@ -29,8 +29,8 @@ void mexFunction(int nlhs, mxArray *plhs[], const int nrhs, const mxArray *prhs[
         return;
     }
     order = (int)(*mxGetPr(prhs[0]));
-    fc = (regular_t)(*mxGetPr(prhs[1]));
-    fs = (regular_t)(*mxGetPr(prhs[2]));
+    fc = (real64_t)(*mxGetPr(prhs[1]));
+    fs = (real64_t)(*mxGetPr(prhs[2]));
     type = (int)(*mxGetPr(prhs[3]));
 
     nbiquads = (int)ceil(order/2);
@@ -39,7 +39,7 @@ void mexFunction(int nlhs, mxArray *plhs[], const int nrhs, const mxArray *prhs[
     }
 
     // generate the SOS matrix.
-    mat = (regular_t*)butter(order, fc, fs, type);
+    mat = (real64_t*)butter(order, fc, fs, type);
     if (mat[0] == NULL) {
         mexErrMsgTxt("BUTTER2SOS_MEX butter function failure. Unable to construct SOS matrix.\n");
         return;
