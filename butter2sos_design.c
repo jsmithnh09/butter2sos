@@ -36,7 +36,7 @@
  *  Output is the pointer to the linear array, or NULL on failure.*
  ******************************************************************/
 
-real64_t* linspace(const int start, const int stop, const int step, int *outsize)
+static real64_t* linspace(const int start, const int stop, const int step, int *outsize)
 {
     int m = round((int)(stop-start)/step);
     real64_t* y;
@@ -56,7 +56,7 @@ real64_t* linspace(const int start, const int stop, const int step, int *outsize
  *      z1 + z2 = (re(z1) + re(z2)) + (im(z1) + im(z2))i  *
  **********************************************************/
 
-inline complex64_t compadd(complex64_t z1, complex64_t z2)
+static inline complex64_t compadd(complex64_t z1, complex64_t z2)
 {
   return (complex64_t)((creal(z1) + creal(z2)) + (cimag(z1) + cimag(z2))*I);
 }
@@ -67,7 +67,7 @@ inline complex64_t compadd(complex64_t z1, complex64_t z2)
  *      z1 - z2 = (re(z1) - re(z2)) + (im(z1) - im(z2))i  *
  **********************************************************/
 
-inline complex64_t compsub(complex64_t z1, complex64_t z2)
+static inline complex64_t compsub(complex64_t z1, complex64_t z2)
 {
   return (complex64_t)((creal(z1) - creal(z2)) + (cimag(z1) - cimag(z2))*I);
 }
@@ -79,7 +79,7 @@ inline complex64_t compsub(complex64_t z1, complex64_t z2)
  *      r = abs(z), phi = angle(z).                          *
  *************************************************************/
 
-inline complex64_t compsqrt(complex64_t x)
+static inline complex64_t compsqrt(complex64_t x)
 {
   return (complex64_t) csqrt(x);
 }
@@ -93,7 +93,7 @@ inline complex64_t compsqrt(complex64_t x)
  *  Outputs a complex number using euler's equation.                  *
  **********************************************************************/
 
-inline complex64_t euler(real64_t x)
+static inline complex64_t euler(real64_t x)
 {
   return (complex64_t) (cos(x) + sin(x)*I);
 }
@@ -109,9 +109,26 @@ inline complex64_t euler(real64_t x)
  * Comparing against a threshold to eliminate    *
  * any imaginary residue.                        *
  *************************************************/
-inline int isreal(complex64_t x)
+static inline int isreal(complex64_t x)
 {
   return (int)(cimag(x) < 100*DBL_EPSILON);
+}
+
+/********************************************************
+ * Function numbiquads                                  *
+ *  determine number of biquads for a filter order.     *
+ * Inputs:                                              *
+ *  order (int) is the filter order.                    *
+ * Outputs:                                             *
+ *  nbiquads (int) are the number of required biquads.  *
+ * Notes:                                               *
+ *  Single corner frequency filters, (LPF,APF,HPF) have *
+ *  a required check, whereas band-based filters (BPF,  *
+ *  BSF), are equal to the given order.                 *
+ ********************************************************/
+static inline int numbiquads(int order)
+{
+  return (int)((order % 2) ? (order-1)/2 + 1 : order/2);
 }
 
 
@@ -124,7 +141,7 @@ inline int isreal(complex64_t x)
  *  Output is a complex64_t array of poles on the S-plane.              *
  **********************************************************************/
 
-complex64_t* seedpoles(const int order, int* numpoles)
+static complex64_t* seedpoles(const int order, int* numpoles)
 {
   int* len = (int*)malloc(sizeof(int));
   
@@ -175,7 +192,7 @@ complex64_t* seedpoles(const int order, int* numpoles)
  *    matrix (real64_t*) is the matrix, [(N/2)x6].   *
  ******************************************************/
 
-real64_t* mksosmatrix(const int order, const int type)
+static real64_t* mksosmatrix(const int order, const int type)
 {
   // determine the number of SOS stages.
   int N = (int)ceil((real64_t)order/2);
@@ -248,7 +265,7 @@ void printsosmatrix(const real64_t* matrix, int nstages)
  *    prints out a complex array.          *
  *******************************************/
 
-void printcarray(const complex64_t* x, const int len)
+static void printcarray(const complex64_t* x, const int len)
 {
   real64_t re, im;
   printf("[1x%d] complex\n", len);
@@ -272,7 +289,7 @@ void printcarray(const complex64_t* x, const int len)
  *    gain (real64_t) is the gain change associated with moving poles. *
  ************************************************************************/
 
-void lpfwarp(complex64_t* poles, int numpoles, real64_t* zeros, int* nzeros, real64_t* gain, real64_t omega)
+static void lpfwarp(complex64_t* poles, int numpoles, real64_t* zeros, int* nzeros, real64_t* gain, real64_t omega)
 {
   for (int pInd = 0; pInd < numpoles; pInd++)
   {
@@ -297,7 +314,7 @@ void lpfwarp(complex64_t* poles, int numpoles, real64_t* zeros, int* nzeros, rea
  *    z (complex64_t) is the result of the division.         *
  ***********************************************************/
 
-complex64_t compdiv(complex64_t x, complex64_t y)
+static complex64_t compdiv(complex64_t x, complex64_t y)
 {
   /* for X = a+bi and Y = c+di, Z = X/Y is equal to:
    *  ((ac + bd) / (c^2 + d^2)) + ((bc - ad)/(c^2 + d^2)i
@@ -319,7 +336,7 @@ complex64_t compdiv(complex64_t x, complex64_t y)
  *    z (complex64_t) is the result of the multiplication.   *
  ***********************************************************/
 
-complex64_t compmult(complex64_t x, complex64_t y)
+static complex64_t compmult(complex64_t x, complex64_t y)
 {
   /* for X = a+bi and Y = c+di, Z = X*Y is equal to:
    *  (ac - bd) + (ad + bc)i
@@ -340,7 +357,7 @@ complex64_t compmult(complex64_t x, complex64_t y)
  *    gain (real64_t*) is a pointer to the gain of the filter.       *
  **********************************************************************/
 
-void hpfwarp(complex64_t* poles, const int numpoles, real64_t* zeros, int* nzeros, real64_t* gain, const real64_t omega)
+static void hpfwarp(complex64_t* poles, const int numpoles, real64_t* zeros, int* nzeros, real64_t* gain, const real64_t omega)
 {
   complex64_t wc = omega + (real64_t)0.0*I;              // omega + 0i, since frequency is real.
   real64_t gshift = (real64_t)0.0;                    // gain change from HPF warping.
@@ -384,7 +401,7 @@ void hpfwarp(complex64_t* poles, const int numpoles, real64_t* zeros, int* nzero
  *    Wn (real64_t*) is the center normalized frequency.               *
  ************************************************************************/
 
-void bpfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, int* numzeros, real64_t* gain, const real64_t* bwidth, const real64_t* Wn)
+static void bpfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, int* numzeros, real64_t* gain, const real64_t* bwidth, const real64_t* Wn)
 {
   int order = *numpoles;                // need original order for the gain approximation.
   complex64_t bw2 = (*bwidth)/2 + 0.0*I;  // half bandwidth, bw/2.
@@ -441,7 +458,7 @@ void bpfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, int* numzero
  *      BPF warping.                                        *
  ************************************************************/
 
-void polesort(complex64_t* poles, int numpoles, int order)
+static void polesort(complex64_t* poles, int numpoles, int order)
 {
   int len = (order % 2) ? numpoles-2 : numpoles;
   
@@ -486,7 +503,7 @@ void polesort(complex64_t* poles, int numpoles, int order)
  *      repeating complex conjugates.                         *
  **************************************************************/
 
-void bsfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, real64_t* gain, const real64_t* bwidth, const real64_t* Wn)
+static void bsfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, real64_t* gain, const real64_t* bwidth, const real64_t* Wn)
 {
   complex64_t bw2 = (*bwidth / 2.0) + 0.0*I;
   complex64_t pold, bsum, bsq;
@@ -544,7 +561,7 @@ void bsfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, real64_t* ga
  *                                                                      *
  ************************************************************************/
 
-void bilinear_band_s2z(complex64_t* poles, const int* numpoles, complex64_t* zeros, int* numzeros, real64_t* gain, const real64_t* fs)
+static void bilinear_band_s2z(complex64_t* poles, const int* numpoles, complex64_t* zeros, int* numzeros, real64_t* gain, const real64_t* fs)
 {
   complex64_t fs2 = (real64_t)2*(*fs) + 0.0*I;  // 2/T equivalent.
   complex64_t pos1 = (real64_t)1.0 + 0.0*I;  // bilinear operation for (z+1)/(z-1)
@@ -638,7 +655,6 @@ real64_t* butterband(const int order, real64_t flo, real64_t fhi, real64_t fs, c
   w1 = 2.0 * (flo/fs);
   w2 = 2.0 * (fhi/fs);
 
-  int N = (int)ceil((real64_t)order/2);
   w1 = (real64_t)tan(HALF_PI * w1) * 4.0;
   w2 = (real64_t)tan(HALF_PI * w2) * 4.0;
 
@@ -783,7 +799,7 @@ real64_t* butterband(const int order, real64_t flo, real64_t fhi, real64_t fs, c
  *                                                                    *
  **********************************************************************/
 
-void bilinear_s2z(complex64_t* poles, const int numpoles, const int numzeros, real64_t* gain, const real64_t fs)
+static void bilinear_s2z(complex64_t* poles, const int numpoles, const int numzeros, real64_t* gain, const real64_t fs)
 {
   complex64_t fs2 = (real64_t)2*fs + 0.0*I;  // 2/T equivalent in bilinear xform.
   complex64_t pgain = (real64_t)1.0 + 0.0*I; // complex +1, (starting value for pole gain shift.)
@@ -869,7 +885,7 @@ real64_t* butter(const int order, const real64_t fc, real64_t fs, const int type
   fs = 2.0;
 
   // APF defaults to LPF formulation.
-  if (type == 2) 
+  if (type == FILT_APF) 
   {
     mat = mksosmatrix(order, (int)0);
   }
@@ -882,7 +898,7 @@ real64_t* butter(const int order, const real64_t fc, real64_t fs, const int type
   poles = seedpoles(order, &npoles);
 
   // warp the poles based on the filter type.
-  if ((type == 0) || (type == 2))
+  if ((type == FILT_LPF) || (type == FILT_APF))
   {
     lpfwarp(poles, npoles, &zeros, &nzeros, &gain, warp);
   }
@@ -921,7 +937,7 @@ real64_t* butter(const int order, const real64_t fc, real64_t fs, const int type
   free(poles); // no longer need complex pole positions.
 
   // since poles are now quantized, loop over if allpass was specified.
-  if (type == 2)
+  if (type == FILT_APF)
   {
     // allpass flips the poles into the zeros for phase relationship.
     posInd = 0;
