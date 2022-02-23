@@ -18,7 +18,7 @@
  */
 
 /*
- * Jordan R. Smith
+ * Copyright: Jordan R. Smith
  *
  */
 
@@ -210,7 +210,7 @@ static real64_t* mksosmatrix(const int order, const int type)
     matrix[a0] = (real64_t)0.0;
 
     
-    if (!type)
+    if ((type == FILT_LPF) || (type == FILT_APF))
     {
       // LPF/APF type -> zeros at -1, or [1, +2, 1].
       sign = (real64_t)1.0;
@@ -612,12 +612,12 @@ static void bilinear_band_s2z(complex64_t* poles, const int* numpoles, complex64
  *                                                             *
  * Inputs:                                                     *
  *  order (int) is the butterworth filter order.               *
- *  Flo (real64_t) is the lower corner frequency.             *
- *  Fhi (real64_t) is the upper corner frequency.             *
- *  Fs (real64_t) is the sampling rate to design at.          *
+ *  Flo (real64_t) is the lower corner frequency.              *
+ *  Fhi (real64_t) is the upper corner frequency.              *
+ *  Fs (real64_t) is the sampling rate to design at.           *
  *  type (int) indicates 0=BPF, 1=BSF.                         *
  * Outputs:                                                    *
- *  matrix (real64_t*) is a pointer to the SOS matrix.        *
+ *  matrix (real64_t*) is a pointer to the SOS matrix.         *
  ***************************************************************/
 
 real64_t* butterband(const int order, real64_t flo, real64_t fhi, real64_t fs, const int type)
@@ -789,13 +789,13 @@ real64_t* butterband(const int order, real64_t flo, real64_t fhi, real64_t fs, c
  *      H(z) = H(s) where s = 2/T * (z+1)/(z-1).                      *
  *                                                                    *
  *  Inputs:                                                           *
- *    poles (complex64_t*) are the poles that are being re-mapped.      *
+ *    poles (complex64_t*) are the poles that are being re-mapped.    *
  *    numpoles (int) are the number of poles in the pole array.       *
  *    numzeros (int) indicates if zeros were generated based on       *
  *      the filter type, (LP/HP/APF).                                 *
- *    gain (real64_t*) is a scalar gain that will be updated based   *
+ *    gain (real64_t*) is a scalar gain that will be updated based    *
  *      on the transformation.                                        *
- *    fs (real64_t) is the sampling rate we're mapping to.           *
+ *    fs (real64_t) is the sampling rate we're mapping to.            *
  *                                                                    *
  **********************************************************************/
 
@@ -852,11 +852,11 @@ static void bilinear_s2z(complex64_t* poles, const int numpoles, const int numze
  *                                                              *
  * Inputs:                                                      *
  *  order (int) is the butterworth filter order.                *
- *  Fc (real64_t) is the corner frequency (-3 dB point.)       *
- *  Fs (real64_t) is the discrete sampling rate to design at.  *
+ *  Fc (real64_t) is the corner frequency (-3 dB point.)        *
+ *  Fs (real64_t) is the discrete sampling rate to design at.   *
  *  type (int) indicates 0=LPF, 1=HPF, 2=APF.                   *
  * Outputs:                                                     *
- *  matrix (real64_t*) is a pointer to the SOS matrix.         *
+ *  matrix (real64_t*) is a pointer to the SOS matrix.          *
  ****************************************************************/
 
 real64_t* butter(const int order, const real64_t fc, real64_t fs, const int type)

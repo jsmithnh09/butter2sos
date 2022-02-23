@@ -5,6 +5,8 @@
  * Primary entrypoint for designing 
  * butterworth filters.	
  *
+ * ./butter2sos -n<order> -r<sampling rate> -c<corner frequency> -t<filter type (0, 1, 2)>
+ *
  * Make: gcc -std=c99 buttersos_design.c buttersos.c -o buttersos
  *
  *==========================================
@@ -15,17 +17,53 @@
  */
 
 #include "butter2sos_design.h"
+#include <unistd.h>
 
-int main(int argc, char const *argv[])
+int main(int argc, char **argv)
 {
-	int order, type, N;
-	real64_t fs, fc;
-	real64_t* mat;
-  
-  type = 0;               // 0=LPF, 1=HPF, 2=APF.
-	fs = 44100.0;           // sampling rate.
-	fc = 300.0;             // 300 Hz
-  order = 7;              // order specification.
+  int index, c;
+  static char usage[] = "%s: -n <order> -c <cornerfrequency> -r <samplerate> -t <type 0,1,2>\n";
+  int order, type, N = 0;
+  real64_t fs, fc;
+  real64_t *mat;
+  while ((c = getopt (argc, argv, "n:c:r:t:")) != -1) {
+    switch (c) {
+      case 'n':
+        order = atoi(optarg);
+        break;
+      case 'r':
+        fs = atof(optarg);
+        break;
+      case 'c':
+        fc = atof(optarg);
+        break;
+      case 't':
+        type = atoi(optarg);
+        break;
+      case '?':
+        printf("ERROR: unknown argument %c provided\n", optopt);
+        exit(1);
+      default:
+        printf(usage, argv[0]);
+        exit(1);
+      }
+  }
+
+  // confirm the input parameters are suitable.
+  if (order <= 0) {
+    printf("ERROR: specified order must be a positive integer number.\n");
+    exit(1);
+  }
+  else if (fc >= fs/2) {
+    printf("ERROR: specified corner frequency exceeds Nyquist.\n");
+    exit(1);
+  }
+  else if (fs <= 0) {
+    printf("ERROR: specified sampling rate must be a positive value.\n");
+    exit(1);
+  }
+
+  // even/odd order spec. defines # biquads
   N = (order % 2) ? (order+1)/2 : order/2;
 
   // check filter type.
@@ -47,7 +85,7 @@ int main(int argc, char const *argv[])
   if ((void *)mat == NULL)
   {
     printf("Unable to construct the SOS matrix.\n");
-    return 1;
+    exit(1);
   }
   
   // print the results and clean up.
@@ -55,5 +93,5 @@ int main(int argc, char const *argv[])
   printf("COEFFICIENTS:\n\n");
   printsosmatrix(mat, N); 
   free(mat);
-	return 0;
+	exit(0);
 }
