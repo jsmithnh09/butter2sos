@@ -22,11 +22,11 @@
 int main(int argc, char **argv)
 {
   int index, c;
-  static char usage[] = "%s: -n <order> -c <cornerfrequency> -r <samplerate> -t <type 0,1,2>\n";
+  static char usage[] = "%s: -n <order> -l <lowband> -h <highband> -r <samplerate> -t <type 0,1>\n";
   int order, type, N = 0;
-  real64_t fs, fc;
+  real64_t fs, fc1, fc2;
   real64_t *mat;
-  while ((c = getopt (argc, argv, "n:c:r:t:")) != -1) {
+  while ((c = getopt (argc, argv, "n:l:h:r:t:")) != -1) {
     switch (c) {
       case 'n':
         order = atoi(optarg);
@@ -34,8 +34,11 @@ int main(int argc, char **argv)
       case 'r':
         fs = atof(optarg);
         break;
-      case 'c':
-        fc = atof(optarg);
+      case 'l':
+        fc1 = atof(optarg);
+        break;
+      case 'h':
+        fc2 = atof(optarg);
         break;
       case 't':
         type = atoi(optarg);
@@ -54,37 +57,39 @@ int main(int argc, char **argv)
     fprintf(stderr, "ERROR: specified order must be a positive integer number.\n");
     exit(1);
   }
-  else if (fc >= fs/2) {
-    fprintf(stderr, "ERROR: specified corner frequency exceeds Nyquist.\n");
+  else if ((fc1 >= fs/2) || (fc2 >= fs/2)) {
+    fprintf(stderr, "ERROR: specified corner frequenc(ies) exceeds Nyquist.\n");
     exit(1);
   }
   else if (fs <= 0) {
     fprintf(stderr, "ERROR: specified sampling rate must be a positive value.\n");
     exit(1);
   }
+  if (fc1 >= fc2) {
+    fprintf(stderr, "ERROR: the lowband must be less than the highband.\n");
+    exit(1);
+  }
 
-  // even/odd order spec. defines # biquads
-  N = (order % 2) ? (order+1)/2 : order/2;
+  // order matches number of biquads.
+  N = order;
 
   // check filter type.
   if (type == 0) {
-    printf("# %-6s: %s\n", "type", "lowpass");
+    printf("# %-8s: %s\n", "type", "bandpass");
   }
   else if (type == 1) {
-    printf("# %-6s: %s\n", "type", "highpass");
-  }
-  else if (type == 2) {
-    printf("# %-6s: %s\n", "type", "allpass");
+    printf("# %-8s: %s\n", "type", "bandstop");
   } else {
-    fprintf(stderr, "ERROR: Invalid filter type. 0=LPF 1=HPF 2=APF.\n");
+    fprintf(stderr, "ERROR: Invalid filter type. 0=BPF, 1=BSF.\n");
     exit(1);
   }
-  printf("# %-6s: %g Hz\n", "Fs", fs);
-  printf("# %-6s: %g Hz\n", "Fc", fc);
-  printf("# %-6s: %d\n", "order", order);
+  printf("# %-8s: %g Hz\n", "Fs", fs);
+  printf("# %-8s: %g Hz\n", "lowband", fc1);
+  printf("# %-8s: %g Hz\n", "highband", fc2);
+  printf("# %-8s: %d\n", "order", order);
   printf("\n");
 
-  mat = butter(order, fc, fs, type);
+  mat = butterband(order, fc1, fc2, fs, type);
   if ((void *)mat == NULL)
   {
     fprintf(stderr, "Unable to construct the SOS matrix.\n");
@@ -96,5 +101,5 @@ int main(int argc, char **argv)
   printf("COEFFICIENTS:\n\n");
   printsosmatrix(mat, N); 
   free(mat);
-	exit(0);
+  exit(0);
 }
