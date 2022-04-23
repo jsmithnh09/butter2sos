@@ -42,7 +42,7 @@ lib.butterband.argtypes = [c_int, c_double, c_double, c_double, c_int]
 lib.butterband.restypes = [POINTER(c_double)]
 ```
 
-References:
+## References:
 \[1\] J.G. Proakis and D.G. Manolakis, Digital Signal Processing, Prentice
 Hall, 2007, chapter 10, section 3.
 
