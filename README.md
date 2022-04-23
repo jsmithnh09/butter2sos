@@ -24,6 +24,24 @@ Spectral responses between the matrix in this project and the solution
 provided by MATLAB is below -100 dB, which is pretty good given 
 floating point machine precision is approximately -138 dB.
 
+To interface with Python, the DLL can be accessed via `ctypes`:
+```python
+from ctypes import *
+from os.path import dirname, realpath, abspath, join
+
+# assuming the DLL is in the same directory as this would-be script...
+repodir = dirname(realpath(__file__))
+dllpath = abspath(join(repodir, "butterlib.dll"))
+lib = cdll.LoadLibrary(dllpath)
+
+# set the return and input types.
+lib.butter.argtypes = [c_int, c_double, c_double, c_int]
+lib.butter.restypes = [POINTER(c_double)]
+
+lib.butterband.argtypes = [c_int, c_double, c_double, c_double, c_int]
+lib.butterband.restypes = [POINTER(c_double)]
+```
+
 References:
 \[1\] J.G. Proakis and D.G. Manolakis, Digital Signal Processing, Prentice
 Hall, 2007, chapter 10, section 3.
