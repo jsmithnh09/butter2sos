@@ -12,14 +12,17 @@ SBAND_TARGET = butter2sos
 MBAND_TARGET = butterband
 LIB_TARGET = butterlib
 
+# single band design LPF/HPF/APF
 sband:
 	@echo #== building single-band ==#
 	$(CC) $(CFLAGS) $(CORE_FILES) $(SRC_DIR)/$(SBAND_TARGET).c -o $(BUILD_DIR)/$(SBAND_TARGET).exe
 
+# multi-band (bandpass/bandstop) design.
 mband:
 	@echo #== building multi-band ==#
 	$(CC) $(CFLAGS) $(CORE_FILES) $(SRC_DIR)/$(MBAND_TARGET).c -o $(BUILD_DIR)/$(MBAND_TARGET).exe
 
+# DLL generation for Python/Julia/MEX interfacing.
 lib:
 	@echo #== building library ===#
 	$(CC) $(CFLAGS) $(CORE_FILES) $(DLLFLAGS) -o $(BUILD_DIR)/$(LIB_TARGET).dll
