@@ -89,7 +89,7 @@ static inline complex64_t compsqrt(complex64_t x)
  *    Generates a complex number using the identity                   *
  *    e^jx = cos(x) + j*sin(x).                                       *
  *  Inputs:                                                           *
- *    x (real64_t) is the real number "x" to convert to a complex.   *
+ *    x (real64_t) is the real number "x" to convert to a complex.    *
  *  Outputs a complex number using euler's equation.                  *
  **********************************************************************/
 
@@ -138,7 +138,7 @@ static inline int numbiquads(int order)
  *    order is odd, the last pole is located at (-1, 0) pre-warping.  *
  *  Inputs:                                                           *
  *    order (int) indicates the filter order.                         *
- *  Output is a complex64_t array of poles on the S-plane.              *
+ *  Output is a complex64_t array of poles on the S-plane.            *
  **********************************************************************/
 
 static complex64_t* seedpoles(const int order, int* numpoles)
@@ -189,7 +189,7 @@ static complex64_t* seedpoles(const int order, int* numpoles)
  *    order (int) is the order of the filter.         *
  *    type (int) indicates 0 for LPF/APF and 1 for HPF*
  *  Outputs:                                          *
- *    matrix (real64_t*) is the matrix, [(N/2)x6].   *
+ *    matrix (real64_t*) is the matrix, [(N/2)x6].    *
  ******************************************************/
 
 static real64_t* mksosmatrix(const int order, const int type)
@@ -242,7 +242,7 @@ static real64_t* mksosmatrix(const int order, const int type)
  *  Function printsosmatrix                *
  *    prints out the SOS matrix to stdout. *
  *  Inputs:                                *
- *    matrix (real64_t*) is a pointer to  *
+ *    matrix (real64_t*) is a pointer to   *
  *        the SOS matrix.                  *
  *    nstages (int) indicates the number   *
  *        of biquads to print.             *
@@ -284,9 +284,9 @@ static void printcarray(const complex64_t* x, const int len)
  *  Function lpfwarp                                                    *
  *    Warps the pole positions given a normalized rotational frequency. *
  *  Inputs:                                                             *
- *    poles (complex64_t*) is the array of poles to transform.            *
+ *    poles (complex64_t*) is the array of poles to transform.          *
  *    np (int) are the number of poles in the array.                    *
- *    gain (real64_t) is the gain change associated with moving poles. *
+ *    gain (real64_t) is the gain change associated with moving poles.  *
  ************************************************************************/
 
 static void lpfwarp(complex64_t* poles, int numpoles, real64_t* zeros, int* nzeros, real64_t* gain, real64_t omega)
@@ -308,10 +308,10 @@ static void lpfwarp(complex64_t* poles, int numpoles, real64_t* zeros, int* nzer
  *  Function compdiv (complex division)                    *
  *    Performs complex division (X/Y).                     *
  *  Inputs:                                                *
- *    x (complex64_t) is the numerator                       *
- *    y (complex64_t) is the denominator                     *
+ *    x (complex64_t) is the numerator                     *
+ *    y (complex64_t) is the denominator                   *
  *  Outputs:                                               *
- *    z (complex64_t) is the result of the division.         *
+ *    z (complex64_t) is the result of the division.       *
  ***********************************************************/
 
 static complex64_t compdiv(complex64_t x, complex64_t y)
@@ -330,10 +330,10 @@ static complex64_t compdiv(complex64_t x, complex64_t y)
  *  Function compmult (complex division)                   *
  *    Performs complex multiplication (X/Y).               *
  *  Inputs:                                                *
- *    x (complex64_t) is the first complex number.           *
- *    y (complex64_t) is the second complex number.          *
+ *    x (complex64_t) is the first complex number.         *
+ *    y (complex64_t) is the second complex number.        *
  *  Outputs:                                               *
- *    z (complex64_t) is the result of the multiplication.   *
+ *    z (complex64_t) is the result of the multiplication. *
  ***********************************************************/
 
 static complex64_t compmult(complex64_t x, complex64_t y)
@@ -352,9 +352,9 @@ static complex64_t compmult(complex64_t x, complex64_t y)
  *    Warps the pole positions given a normalized rotation frequency. *
  *    This function also returns zeros at the origin if any at Inf.   *
  *  Inputs/Outputs:                                                   *
- *    poles (complex64_t*) is the complex pole array (modified).        *
+ *    poles (complex64_t*) is the complex pole array (modified).      *
  *    npoles (int) is the length of the pole array.                   *
- *    gain (real64_t*) is a pointer to the gain of the filter.       *
+ *    gain (real64_t*) is a pointer to the gain of the filter.        *
  **********************************************************************/
 
 static void hpfwarp(complex64_t* poles, const int numpoles, real64_t* zeros, int* nzeros, real64_t* gain, const real64_t omega)
@@ -392,13 +392,13 @@ static void hpfwarp(complex64_t* poles, const int numpoles, real64_t* zeros, int
  *  Function bpfwarp                                                    *
  *    Warps the pole positions based on the corner frequencies.         *
  *  Inputs:                                                             *
- *    poles (complex64_t*) is the complex pole array.                     *
+ *    poles (complex64_t*) is the complex pole array.                   *
  *    numpoles (int) are the number of poles. This will double in size. *
- *    zeros (real64_t*) is the zero array.                             *
+ *    zeros (real64_t*) is the zero array.                              *
  *    numzeros (int*) is the number of zeros. This grows to zeros(np,1) *
- *    gain (real64_t*) is the gain approximation.                      *
- *    bwidth (real64_t*) is the bandwidth between corner frequencies.  *
- *    Wn (real64_t*) is the center normalized frequency.               *
+ *    gain (real64_t*) is the gain approximation.                       *
+ *    bwidth (real64_t*) is the bandwidth between corner frequencies.   *
+ *    Wn (real64_t*) is the center normalized frequency.                *
  ************************************************************************/
 
 static void bpfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, int* numzeros, real64_t* gain, const real64_t* bwidth, const real64_t* Wn)
@@ -451,7 +451,7 @@ static void bpfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, int* 
  *  Function polesort                                       *
  *    Sorts poles based on proximity to the unit circle.    *
  *  Inputs:                                                 *
- *    poles (complex64_t*) is a pointer to the pole array.    *
+ *    poles (complex64_t*) is a pointer to the pole array.  *
  *    numpoles (int*) are the number of poles in the array. *
  *    order (int*) indicates the order of the filter. If    *
  *      odd, the last two poles are real from               *
@@ -490,13 +490,13 @@ static void polesort(complex64_t* poles, int numpoles, int order)
  *  Function bsfwarp                                          *
  *    Warps the poles and zeros to a bandstop filter type.    *
  *  Inputs:                                                   *
- *    poles (complex64_t*) are the seeded poles.                *
+ *    poles (complex64_t*) are the seeded poles.              *
  *    numpoles (int*) is the number of poles in the array.    *
- *    zeros (complex64_t*) is a pointer to the zeros array.     *
+ *    zeros (complex64_t*) is a pointer to the zeros array.   *
  *    numzeros (int*) is the number of zeros in the array.    *
- *    gain (real64_t*) is the gain of the filter.            *
- *    bwidth (real64_t*) is the bandwidth of the stop region.*
- *    Wn (real64_t*) is the normalized center frequency.     *
+ *    gain (real64_t*) is the gain of the filter.             *
+ *    bwidth (real64_t*) is the bandwidth of the stop region. *
+ *    Wn (real64_t*) is the normalized center frequency.      *
  * Outputs:                                                   *
  *    numpoles will be modified to double in size.            *
  *    numzeros will be the same length as numpoles with       *
@@ -553,11 +553,11 @@ static void bsfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, real6
  *  Function bilinear_band_s2z                                          *
  *    Warps the pole and zero positions for bandpass/bandstop filters.  *
  *  Inputs:                                                             *
- *    poles (complex64_t*) is the complex pole array to warp.             *
+ *    poles (complex64_t*) is the complex pole array to warp.           *
  *    npoles (int*) is the number of poles.                             *
- *    zeros (complex64_t*) is the complex zero array to warp.             *
+ *    zeros (complex64_t*) is the complex zero array to warp.           *
  *    nzeros (int*) are the number of zeros.                            *
- *    gain (real64_t*) is the pointer to the gain of the filter.       *
+ *    gain (real64_t*) is the pointer to the gain of the filter.        *
  *                                                                      *
  ************************************************************************/
 
