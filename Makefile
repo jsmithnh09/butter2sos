@@ -27,9 +27,14 @@ lib:
 	@echo #== building library ===#
 	$(CC) $(CFLAGS) $(CORE_FILES) $(DLLFLAGS) -o $(BUILD_DIR)/$(LIB_TARGET).dll
 
+libcopy:
+	@echo #== copying DLL into relevant sub-project directories ==#
+	copy source $(BUILD_DIR)/$(LIB_TARGET).dll destination $(CURDIR)/python/pybutter/src
+	copy source $(BUILD_DIR)/$(LIB_TARGET).dll destination $(CURDIR)/julia
+
 .PHONY: clean
 
-all: sband mband lib
+all: sband mband lib libcopy
 
 # cleaning is failing on Windows...likely need the Windows "rm" alternative.
 clean:

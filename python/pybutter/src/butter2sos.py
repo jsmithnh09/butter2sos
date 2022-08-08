@@ -1,11 +1,7 @@
-from ctypes import *
-from os import path
 import numpy as np
-
-"""
-some constants related to tracking the DLL with butterworth design.
-only question is if we have some mechanism for unloading the DLL other than a function(?)
-"""
+from os import path
+from ctypes import *
+import atexit
 
 
 def _initialize_dll():
@@ -19,6 +15,16 @@ def _initialize_dll():
     return sosdll
 
 
+# instantiate the module-scope variable.
+_SOSDLL = _initialize_dll()
+_NCOEFFS = 6
+
+# let's register the atexit method to close the library once we're done.
+@atexit.register
+def _close_dll():
+    del _SOSDLL
+
+
 def _numstages(ord, type="lowpass") -> int:
     """compute the number of stages based on the filter type."""
     if type in ["lowpass", "highpass", "allpass"]:
@@ -26,7 +32,7 @@ def _numstages(ord, type="lowpass") -> int:
     elif type in ["bandpass", "bandstop"]:
         ncount = ord
     else:
-        raise ValueError("filter type %s is not valid." % type)
+        raise ValueError(f"filter type {type} is not valid.")
 
     return int(ncount)
 
@@ -38,7 +44,7 @@ def butter(order, fc, fs=44100.0, type="lowpass") -> np.matrix:
     elif fs <= 0:
         raise ValueError("Sampling rate %g cannot go below DC." % fs)
     elif type not in ["lowpass", "highpass", "allpass"]:
-        raise ValueError("Unknown filter type %s." % type)
+        raise ValueError(f"Unknown filter type {type}.")
 
     N = _numstages(order, type)
 
@@ -50,22 +56,21 @@ def butter(order, fc, fs=44100.0, type="lowpass") -> np.matrix:
     else:
         e_type = 2
 
-    dll = _initialize_dll()
     N = _numstages(order, type)
-    mat = dll.butter(c_int(order), c_double(fc), c_double(fs), c_int(e_type))
-    sosmat = np.reshape(np.asmatrix([mat[i] for i in range(N * 6)]), (N, 6))
-    del mat, dll
+    mat = _SOSDLL.butter(c_int(order), c_double(fc), c_double(fs), c_int(e_type))
+    sosmat = np.reshape(
+        np.asmatrix([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS)
+    )
+    del mat
     return sosmat
 
 
 def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.matrix:
     """two corner frequency butterworth filter design."""
     if type not in ["bandpass", "bandstop"]:
-        raise ValueError("Unknown filter type %s." % type)
+        raise ValueError(f"Unknown filter type {type}")
     elif flow >= fhigh:
-        tmp = flow
-        flow = fhigh
-        fhigh = tmp
+        flow, fhigh = fhigh, flow
 
     if fhigh >= fs / 2:
         raise ValueError("Upper corner frequency exceeds Nyquist.")
@@ -77,11 +82,12 @@ def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.matrix:
         e_type = 1
 
     # interface and parse the C-function.
-    dll = _initialize_dll()
     N = _numstages(order, type)
-    mat = dll.butterband(
+    mat = _SOSDLL.butterband(
         c_int(order), c_double(flow), c_double(fhigh), c_double(fs), c_int(e_type)
     )
-    sosmat = np.reshape(np.asmatrix([mat[i] for i in range(N * 6)]), (N, 6))
-    del mat, dll
+    sosmat = np.reshape(
+        np.asmatrix([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS)
+    )
+    del mat
     return sosmat
