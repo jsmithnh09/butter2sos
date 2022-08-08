@@ -15,14 +15,17 @@ def _initialize_dll():
     return sosdll
 
 
+# DLL closer-callback on Python instance closure.
+def close_dll(cdll: LibraryLoader):
+    del cdll
+
+
 # instantiate the module-scope variable.
 _SOSDLL = _initialize_dll()
 _NCOEFFS = 6
 
-# let's register the atexit method to close the library once we're done.
-@atexit.register
-def _close_dll():
-    del _SOSDLL
+# register and pass the library handle.
+atexit.register(close_dll, _SOSDLL)
 
 
 def _numstages(ord, type="lowpass") -> int:
@@ -49,9 +52,9 @@ def butter(order, fc, fs=44100.0, type="lowpass") -> np.matrix:
     N = _numstages(order, type)
 
     # give the integer filter type
-    if type[0] is "l":
+    if type[0] == "l":
         e_type = 0
-    elif type[0] is "h":
+    elif type[0] == "h":
         e_type = 1
     else:
         e_type = 2
@@ -76,7 +79,7 @@ def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.matrix:
         raise ValueError("Upper corner frequency exceeds Nyquist.")
 
     # bandpass = 0, bandstop = 1
-    if type[-1] is "s":
+    if type[-1] == "s":
         e_type = 0
     else:
         e_type = 1
