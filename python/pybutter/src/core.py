@@ -2,6 +2,7 @@ import numpy as np
 from os import path
 from ctypes import *
 import atexit
+from typing import Tuple
 
 
 def _initialize_dll():
@@ -16,7 +17,7 @@ def _initialize_dll():
 
 
 # DLL closer-callback on Python instance closure.
-def close_dll(cdll: LibraryLoader):
+def _close_dll(cdll: LibraryLoader):
     del cdll
 
 
@@ -25,7 +26,34 @@ _SOSDLL = _initialize_dll()
 _NCOEFFS = 6
 
 # register and pass the library handle.
-atexit.register(close_dll, _SOSDLL)
+atexit.register(_close_dll, _SOSDLL)
+
+
+def stable(matrix: np.ndarray) -> Tuple[bool, int]:
+    """indicate if the SOS matrix is stable.
+
+    Instead of constructing an eigensolve companion matrix,
+    just use the quadratic formula, (unless np.roots is faster(?))
+
+    Parameters
+    ----------
+    matrix: np.ndarray
+        The Second Order Sections, where each row is a biquad.
+
+    Returns
+    -------
+    out: Tuple[bool, int]
+        A tuple with a flag indicating if stable and an optional
+        integer indicating the stage number if the biquad was unstable.
+    """
+    for stgInd in range(matrix.shape[0]):
+        a, b, c = matrix[stgInd, 3:]
+        sq = np.sqrt(b**2 - 4 * a * c)
+        denom = 2 * a
+        roots = [(-b + sq) / denom, (-b - sq) / denom]
+        if any(abs(roots)) >= 1:  # beyond unit circle?
+            return (False, stgInd)
+    return (True, None)
 
 
 def _numstages(ord, type="lowpass") -> int:
@@ -40,8 +68,36 @@ def _numstages(ord, type="lowpass") -> int:
     return int(ncount)
 
 
-def butter(order, fc, fs=44100.0, type="lowpass") -> np.matrix:
-    """single corner-frequency butterworth filter design."""
+def butter(order, fc, fs=44100.0, type="lowpass") -> np.ndarray:
+    """Butterworth filter design, (single corner frequency.)
+
+    The C-level API into butterlib.dll. Supports several
+    filter types.
+
+    Parameters
+    -----------
+    order: int
+        The order of the filter.
+    fc: float
+        The corner or "natural" frequency point.
+    fs: float
+        The sampling rate of the filter.
+    type: str
+        The type of filter. Supported filters are lowpass,
+        highpass, and allpass.
+
+    Returns
+    -------
+    sosmat: np.ndarray
+        The SOS matrix generated the C-level API.
+
+    Raises:
+    ------
+    In the event the C-level API produces any NaN's, (saw this
+    when performing the bilinear xform on floats and not doubles),
+    we do a check on the matrix to ensure the poles are stable.
+
+    """
     if fc >= fs / 2:
         raise ValueError("Corner frequency %g cannot exceed Nyquist." % fc)
     elif fs <= 0:
@@ -64,12 +120,43 @@ def butter(order, fc, fs=44100.0, type="lowpass") -> np.matrix:
     sosmat = np.reshape(
         np.asmatrix([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS)
     )
+    (status, stg) = stable(sosmat)
+    if not status:
+        raise ValueError(
+            f"SOS matrix from butterlib produces unstable poles at stage ({stg})."
+        )
     del mat
     return sosmat
 
 
-def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.matrix:
-    """two corner frequency butterworth filter design."""
+def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.npdarray:
+    """Band-based Butterworth filter design.
+
+    Two corner-frequency based filter design (bandpass/bandstop).
+
+    Parameters
+    ----------
+    order: int
+        The order of the filter. Equal to the number of biquads produced.
+    flow: float
+        The lower corner frequency of the filter.
+    fhigh: float
+        The higher corner frequency of the filter.
+    fs: float
+        The discrete sampling rate of the filter.
+    type: str
+        The filter-type string, indicating "bandpass" or "bandstop".
+
+    Returns
+    -------
+    sosmatrix: np.ndarray
+        The quantized SOS matrix from the butterlib DLL.
+
+    Raises
+    ------
+    If the filter has unstable poles due to an error in the C-code,
+    we'll raise a value error.
+    """
     if type not in ["bandpass", "bandstop"]:
         raise ValueError(f"Unknown filter type {type}")
     elif flow >= fhigh:
@@ -92,5 +179,10 @@ def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.matrix:
     sosmat = np.reshape(
         np.asmatrix([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS)
     )
+    (status, stg) = stable(sosmat)
+    if not status:
+        raise ValueError(
+            f"SOS matrix from butterlib produces unstable poles at stage ({stg})."
+        )
     del mat
     return sosmat
