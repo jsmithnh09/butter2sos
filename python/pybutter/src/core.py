@@ -47,11 +47,11 @@ def stable(matrix: np.ndarray) -> Tuple[bool, int]:
         integer indicating the stage number if the biquad was unstable.
     """
     for stgInd in range(matrix.shape[0]):
-        a, b, c = matrix[stgInd, 3:]
-        sq = np.sqrt(b**2 - 4 * a * c)
-        denom = 2 * a
-        roots = [(-b + sq) / denom, (-b - sq) / denom]
-        if any(abs(roots)) >= 1:  # beyond unit circle?
+        p = matrix[stgInd, 3:]
+        sq = np.sqrt((p[1] ** 2 - 4 * p[0] * p[2]) + 0j)
+        denom = 2 * p[0]
+        roots = [(-p[1] + sq) / denom, (-p[1] - sq) / denom]
+        if any(abs(r) >= 1 for r in roots):
             return (False, stgInd)
     return (True, None)
 
@@ -117,9 +117,7 @@ def butter(order, fc, fs=44100.0, type="lowpass") -> np.ndarray:
 
     N = _numstages(order, type)
     mat = _SOSDLL.butter(c_int(order), c_double(fc), c_double(fs), c_int(e_type))
-    sosmat = np.reshape(
-        np.asmatrix([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS)
-    )
+    sosmat = np.reshape(np.array([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS))
     (status, stg) = stable(sosmat)
     if not status:
         raise ValueError(
@@ -129,7 +127,7 @@ def butter(order, fc, fs=44100.0, type="lowpass") -> np.ndarray:
     return sosmat
 
 
-def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.npdarray:
+def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.ndarray:
     """Band-based Butterworth filter design.
 
     Two corner-frequency based filter design (bandpass/bandstop).
@@ -176,9 +174,7 @@ def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.npdarray:
     mat = _SOSDLL.butterband(
         c_int(order), c_double(flow), c_double(fhigh), c_double(fs), c_int(e_type)
     )
-    sosmat = np.reshape(
-        np.asmatrix([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS)
-    )
+    sosmat = np.reshape(np.array([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS))
     (status, stg) = stable(sosmat)
     if not status:
         raise ValueError(
