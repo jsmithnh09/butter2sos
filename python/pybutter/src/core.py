@@ -2,7 +2,7 @@ import numpy as np
 from os import path
 from ctypes import *
 import atexit
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 def _initialize_dll():
@@ -29,11 +29,11 @@ _NCOEFFS = 6
 atexit.register(_close_dll, _SOSDLL)
 
 
-def stable(matrix: np.ndarray) -> Tuple[bool, int]:
+def stable(matrix: np.ndarray) -> Tuple[bool, Optional[int]]:
     """indicate if the SOS matrix is stable.
 
-    Instead of constructing an eigensolve companion matrix,
-    just use the quadratic formula, (unless np.roots is faster(?))
+    Instead of eigensolving a companion matrix, just use the quadratic
+    formula, (not sure if np.roots is faster?)
 
     Parameters
     ----------
@@ -42,9 +42,10 @@ def stable(matrix: np.ndarray) -> Tuple[bool, int]:
 
     Returns
     -------
-    out: Tuple[bool, int]
+    out: Tuple[bool, Optional[int]]
         A tuple with a flag indicating if stable and an optional
-        integer indicating the stage number if the biquad was unstable.
+        integer indicating the stage number if the
+        biquad was unstable.
     """
     for stgInd in range(matrix.shape[0]):
         p = matrix[stgInd, 3:]
