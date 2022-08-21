@@ -2,7 +2,7 @@ import numpy as np
 from os import path
 from ctypes import *
 import atexit
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 import os, struct
 
 
@@ -28,6 +28,27 @@ _NCOEFFS = 6
 
 # register and pass the library handle.
 atexit.register(_close_dll, _SOSDLL)
+
+
+def pole2quad(pole: List[complex]) -> List:
+    """root expansion of complex conjugates into biquadratic.
+
+    Based on simple expansion of complex conjugates,
+    we can pull out a quadratic.
+
+    Parameters
+    ----------
+    p: complex
+        Complex value, with a pairing conjugate.
+
+    Returns
+    -------
+    out: List[float]
+        The quantized quadratic.
+    """
+
+    z0r, z0c = pole[0].real, (pole[0] * pole[0].conjugate())
+    return [1, -2 * z0r, z0c.real]
 
 
 def stable(matrix: np.ndarray) -> Tuple[bool, Optional[int]]:
