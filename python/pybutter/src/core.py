@@ -3,6 +3,7 @@ from os import path
 from ctypes import *
 import atexit
 from typing import Tuple, Optional
+import os, struct
 
 
 def _initialize_dll():
@@ -67,6 +68,46 @@ def _numstages(ord, type="lowpass") -> int:
         raise ValueError(f"filter type {type} is not valid.")
 
     return int(ncount)
+
+
+def mksosbin(fname: str, sos: np.ndarray) -> None:
+    """Write a SOS binary file.
+
+    writes a .sosbin file that contains the following format:
+    LITTLE ENDIAN:
+        [NSTAGES <uint32>][b0-b2<double>][a0-a2<double>]
+
+    Parameters
+    ----------
+    fname: str
+        The filename (relative or absolute)
+    sos: np.ndarray
+        The sosmatrix to write to a file.
+
+    Returns
+    -------
+    None
+
+    Raises:
+    -------
+    Any file-I/O specific errors.
+    """
+
+    tree, name = os.path.split(fname)
+    if tree != "":
+        if not os.path.isdir(tree):
+            raise ValueError("Specified filename is not a valid directory.")
+    else:
+        tree = os.getcwd()
+    name.replace(".sosbin", "")
+    name += ".sosbin"
+    target = os.path.join(tree, name)
+    nstages = sos.shape[0]
+    with open(target, "wb") as fpt:
+        fpt.write(struct.pack("<I", int(nstages)))
+        for stgInd in range(nstages):
+            for coeffInd in range(sos.shape[1]):
+                fpt.write(struct.pack("<d", sos[stgInd, coeffInd]))
 
 
 def butter(order, fc, fs=44100.0, type="lowpass") -> np.ndarray:
