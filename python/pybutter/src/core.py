@@ -131,6 +131,36 @@ def mksosbin(fname: str, sos: np.ndarray) -> None:
                 fpt.write(struct.pack("<d", sos[stgInd, coeffInd]))
 
 
+def readsosbin(fname: str) -> np.ndarray:
+    """Read the .SOSBIN file.
+
+    Parameters
+    ----------
+    fname: str
+        The filename of the .sosbin file.
+
+    Returns
+    -------
+    sos: np.ndarray
+        the SOS matrix as a numpy array.
+    """
+    if not os.path.isfile(fname):
+        raise ValueError(f"Specified file {fname} does not exist.")
+    tree, name = os.path.split(fname)
+    if tree == "":
+        tree = os.getcwd()
+    target = os.path.join(tree, name)
+    with open(target, "rb") as fpt:
+        bindata = fpt.read()
+    nstages = struct.unpack("<I", bindata[0])
+    mat = np.zeros((nstages, 6))
+    ind = 1
+    for stgInd in range(nstages[0]):
+        for coeffInd in range(6):
+            mat[stgInd, coeffInd] = struct.unpack("<d", bindata[ind])
+            ind += 1
+
+
 def butter(order, fc, fs=44100.0, type="lowpass") -> np.ndarray:
     """Butterworth filter design, (single corner frequency.)
 
