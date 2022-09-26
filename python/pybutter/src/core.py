@@ -91,12 +91,21 @@ def _numstages(ord, type="lowpass") -> int:
     return int(ncount)
 
 
+def _sosnorm(sosmat: np.ndarray) -> Tuple[np.ndarray, float]:
+    """Normalize the matrix and extract the gain, (drops b0 term need.)"""
+    K = np.prod(sosmat[:, 0])
+    for stg in range(sosmat.shape[0]):
+        g = sosmat[stg, 0]
+        sosmat[stg, 0:3] /= g
+    return (sosmat, K)
+
+
 def mksosbin(fname: str, sos: np.ndarray) -> None:
     """Write a SOS binary file.
 
     writes a .sosbin file that contains the following format:
     LITTLE ENDIAN:
-        [NSTAGES <uint32>][b0-b2<double>][a0-a2<double>]
+        [NSTAGES <uint32>][GAIN <double>][b0-b2<double>][a0-a2<double>]
 
     Parameters
     ----------
@@ -124,8 +133,10 @@ def mksosbin(fname: str, sos: np.ndarray) -> None:
     name += ".sosbin"
     target = os.path.join(tree, name)
     nstages = sos.shape[0]
+    sos, K = _sosnorm(sos)
     with open(target, "wb") as fpt:
         fpt.write(struct.pack("<I", int(nstages)))
+        fpt.write(struct.pack("<d", float(K)))
         for stgInd in range(nstages):
             for coeffInd in range(sos.shape[1]):
                 fpt.write(struct.pack("<d", sos[stgInd, coeffInd]))
@@ -153,12 +164,14 @@ def readsosbin(fname: str) -> np.ndarray:
     with open(target, "rb") as fpt:
         bindata = fpt.read()
     nstages = struct.unpack("<I", bindata[0])
+    K = struct.unpack("<d", bindata[1])
     mat = np.zeros((nstages, 6))
-    ind = 1
+    ind = 2
     for stgInd in range(nstages[0]):
         for coeffInd in range(6):
             mat[stgInd, coeffInd] = struct.unpack("<d", bindata[ind])
             ind += 1
+    mat[0, 0:3] *= K
 
 
 def butter(order, fc, fs=44100.0, type="lowpass") -> np.ndarray:
