@@ -1,14 +1,18 @@
+module butter2sos
+
 using DSP
 
+export butter, butterband
+
 """
-    sos = butter2sos(order, Fc, Fs, type=:lowpass)
+    sos = butter(order, Fc, Fs, type=:lowpass)
 
 Z-domain IIR Butterworth design of Lowpass/Highpass/Allpass filters.
 `Fc` indicates the corner "-3 dB" natural frequency point, whereas `Fs` indicates
 the discrete sample rate and `order` specifies the cascade filter order. The returned
 `sos` SecondOrderSection type is compatible with DSP.jl.
 """
-function butter2sos(order::Integer, Fc::Real, Fs::Real, type::Symbol=:lowpass)
+function butter(order::Integer, Fc::Real, Fs::Real, type::Symbol=:lowpass)
     (Fc > 0 && Fs > 0) || throw(ArgumentError("Fc and/or Fs must be greater than 0 Hz (DC)."))
     (Fc <= Fs/2) || throw(ArgumentError("Upperband `Fhi` cannot exceed Nyquist."))
     (type ∈ [:lowpass, :highpass, :allpass]) || throw(ArgumentError("type must indicate ':lowpass', ':highpass', or ':allpass.'"))
@@ -66,11 +70,5 @@ function butterband(order::Integer, Fl::Real, Fh::Real, Fs::Real, type::Symbol=:
     !any(isnan, sosmat) || error("Filter specs ($(order), $(Fl), $(Fh), $(Fs), $(type)) produced a gain of zero.")
     SecondOrderSections(Vb,K)
 end
-    
 
-
-
-    
-
-
-
+end
