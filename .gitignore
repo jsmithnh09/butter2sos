@@ -9,3 +9,4 @@ bin/*
 python/pybutter/.venv/*
 python/pybutter/src/pybutter/*.dll
 *.egg-info
+python/pybutter/build/*
