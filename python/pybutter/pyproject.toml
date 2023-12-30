@@ -1,3 +1,12 @@
+[project]
+name = "pybutter"
+version = "1.0.0"
+dependencies = ["scipy"]
+requires-python = ">=3.10"
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+pybutter = ["butterlib"]

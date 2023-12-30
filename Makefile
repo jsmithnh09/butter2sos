@@ -29,8 +29,8 @@ lib:
 
 libcopy:
 	@echo #== copying DLL into relevant sub-project directories ==#
-	cp $(BUILD_DIR)/$(LIB_TARGET).dll $(CURDIR)/python/pybutter/src
-	cp $(BUILD_DIR)/$(LIB_TARGET).dll $(CURDIR)/julia
+	cp $(BUILD_DIR)/$(LIB_TARGET).dll $(CURDIR)/python/pybutter/src/pybutter
+	cp $(BUILD_DIR)/$(LIB_TARGET).dll $(CURDIR)/butter2sos.jl
 
 .PHONY: clean
 

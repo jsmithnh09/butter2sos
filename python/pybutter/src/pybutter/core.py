@@ -9,7 +9,10 @@ import os, struct
 def _initialize_dll():
     """initialize the DLL and set the return types and argtypes."""
     curdir = path.abspath(path.dirname(__file__))
-    sosdll = cdll.LoadLibrary(path.join(curdir, "butterlib"))
+    dllpath = path.join(curdir, "butterlib.dll")
+    if not path.isfile(dllpath):
+        raise FileNotFoundError(f"The {dllpath} LIB file was not found.")
+    sosdll = cdll.LoadLibrary(dllpath)
     sosdll.butter.argtypes = [c_int, c_double, c_double, c_int]
     sosdll.butterband.argtypes = [c_int, c_double, c_double, c_double, c_int]
     sosdll.butter.restype = POINTER(c_double)
