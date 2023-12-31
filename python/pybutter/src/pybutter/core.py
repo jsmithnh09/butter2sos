@@ -97,13 +97,14 @@ def _numstages(ord, type="lowpass") -> int:
 def _sosnorm(sosmat: np.ndarray) -> Tuple[np.ndarray, float]:
     """Normalize the matrix and extract the gain, (drops b0 term need.)"""
     K = np.prod(sosmat[:, 0])
-    for stg in range(sosmat.shape[0]):
+    normsos = sosmat.copy()
+    for stg in range(normsos.shape[0]):
         g = sosmat[stg, 0]
-        sosmat[stg, 0:3] /= g
-    return (sosmat, K)
+        normsos[stg, 0:3] /= g
+    return (normsos, K)
 
 
-def mksosbin(fname: str, sos: np.ndarray) -> None:
+def writesosbin(fname: str, sos: np.ndarray) -> None:
     """Write a SOS binary file.
 
     writes a .sosbin file that contains the following format:
@@ -136,13 +137,13 @@ def mksosbin(fname: str, sos: np.ndarray) -> None:
     name += ".sosbin"
     target = os.path.join(tree, name)
     nstages = sos.shape[0]
-    sos, K = _sosnorm(sos)
+    nsos, K = _sosnorm(sos)
     with open(target, "wb") as fpt:
         fpt.write(struct.pack("<I", int(nstages)))
         fpt.write(struct.pack("<d", float(K)))
         for stgInd in range(nstages):
-            for coeffInd in range(sos.shape[1]):
-                fpt.write(struct.pack("<d", sos[stgInd, coeffInd]))
+            for coeffInd in range(nsos.shape[1]):
+                fpt.write(struct.pack("<d", nsos[stgInd, coeffInd]))
 
 
 def readsosbin(fname: str) -> np.ndarray:
@@ -158,23 +159,25 @@ def readsosbin(fname: str) -> np.ndarray:
     sos: np.ndarray
         the SOS matrix as a numpy array.
     """
-    if not os.path.isfile(fname):
-        raise ValueError(f"Specified file {fname} does not exist.")
+    
     tree, name = os.path.split(fname)
     if tree == "":
         tree = os.getcwd()
+    name.replace(".sosbin", "")
+    name += ".sosbin"
     target = os.path.join(tree, name)
     with open(target, "rb") as fpt:
         bindata = fpt.read()
-    nstages = struct.unpack("<I", bindata[0])
-    K = struct.unpack("<d", bindata[1])
-    mat = np.zeros((nstages, 6))
-    ind = 2
-    for stgInd in range(nstages[0]):
-        for coeffInd in range(6):
-            mat[stgInd, coeffInd] = struct.unpack("<d", bindata[ind])
-            ind += 1
+    nstages = struct.unpack("<I", bindata[0:4])[0]
+    ncbytes = _NCOEFFS * 8
+    ntbytes = nstages * ncbytes # 8 bytes per double.
+    K = struct.unpack("<d", bindata[4:12])[0]
+    mat = np.zeros((nstages, _NCOEFFS))
+    fmt = "<" + "d" * _NCOEFFS
+    for stage, bytes in zip(range(nstages), range(12, ntbytes+12, ncbytes)):
+        mat[stage, :] = struct.unpack(fmt, bindata[bytes:bytes+ncbytes])
     mat[0, 0:3] *= K
+    return mat
 
 
 def butter(order, fc, fs=44100.0, type="lowpass") -> np.ndarray:

@@ -4,7 +4,7 @@ from .core import (
     pole2quad, 
     stable, 
     readsosbin, 
-    mksosbin
+    writesosbin
 )
 
 # only expose the designer methods.
@@ -14,5 +14,5 @@ __all__ = [
     "pole2quad", 
     "stable",
     "readsosbin",
-    "mksosbin"
+    "writesosbin"
 ]
