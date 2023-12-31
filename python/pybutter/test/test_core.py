@@ -54,3 +54,22 @@ def test_sosbin(tmp_path):
     (H2, _) = sosfreqz(dummy2, worN=_NPTS, fs=_FS)
 
     assert np.allclose(H1[1:], H2[1:], atol=_ERR_TOL)
+
+def test_xpansion():
+    """Test that the pole expansion acts as expected."""
+    
+    # might seem some accum. error in the expansion...
+    coeffs = pb.pole2quad([-1 + np.sqrt(2)*1j, -1 - np.sqrt(2)*1j])
+    diffs = [x-y for x, y in zip(coeffs, [1, 2, 3])]
+    assert all([dx <= np.sqrt(np.finfo(np.float64).eps) for dx in diffs])
+
+def test_stability():
+    """Test the stability of the SOS matrix."""
+
+    # any SOS matrix produced by SciPy designs should be stable.
+    sos = butter(7, 12345, fs=_FS, btype='lowpass', output='sos')
+    assert pb.stable(sos)[0] is True
+
+    # push a pole magnitude outside of the unit circle to trigger the flag.
+    sos[1,3:] = [100, 200, 100]
+    assert pb.stable(sos)[1] == 1
