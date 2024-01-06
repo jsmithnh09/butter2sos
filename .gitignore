@@ -1,14 +1,17 @@
 # exclude the .vscode extensions.
-butter2sos.jl/Manifest.toml
 .vscode/*
 
 # exclude any of the build-time artifacts.
 bin/*
 
 # ignoring virtual environments and localized DLL files.
-python/pybutter/.venv/*
-python/pybutter/src/pybutter/*.dll
+.venv/*
+src/pybutter/*.dll
 *.egg-info
-python/pybutter/build/*
+build/*
 __pycache__
 .pytest_cache
+
+# ignoring the bazel outputs.
+core/bazel*
+*bazel.lock
