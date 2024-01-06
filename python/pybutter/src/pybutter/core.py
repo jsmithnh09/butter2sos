@@ -13,10 +13,10 @@ def _initialize_dll():
     if not path.isfile(dllpath):
         raise FileNotFoundError(f"The {dllpath} LIB file was not found.")
     sosdll = cdll.LoadLibrary(dllpath)
-    sosdll.butter.argtypes = [c_int, c_double, c_double, c_int]
-    sosdll.butterband.argtypes = [c_int, c_double, c_double, c_double, c_int]
-    sosdll.butter.restype = POINTER(c_double)
-    sosdll.butterband.restype = POINTER(c_double)
+    sosdll.jl_butter.argtypes = [c_int, c_double, c_double, c_int, POINTER(c_double)]
+    sosdll.jl_butterband.argtypes = [c_int, c_double, c_double, c_double, c_int, POINTER(c_double)]
+    sosdll.jl_butter.restype = None
+    sosdll.jl_butterband.restype = None
     return sosdll
 
 
@@ -228,14 +228,15 @@ def butter(order, fc, fs=44100.0, type="lowpass") -> np.ndarray:
         e_type = 2
 
     N = _numstages(order, type)
-    mat = _SOSDLL.butter(c_int(order), c_double(fc), c_double(fs), c_int(e_type))
+    mat = cast((c_double * N * _NCOEFFS)(), POINTER(c_double))
+    _SOSDLL.jl_butter(c_int(order), c_double(fc), c_double(fs), c_int(e_type), mat)
     sosmat = np.reshape(np.array([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS))
     (status, stg) = stable(sosmat)
+    del mat
     if not status:
         raise ValueError(
             f"SOS matrix from butterlib produces unstable poles at stage ({stg})."
         )
-    del mat
     return sosmat
 
 
@@ -283,14 +284,15 @@ def butterband(order, flow, fhigh, fs=44100.0, type="bandpass") -> np.ndarray:
 
     # interface and parse the C-function.
     N = _numstages(order, type)
-    mat = _SOSDLL.butterband(
-        c_int(order), c_double(flow), c_double(fhigh), c_double(fs), c_int(e_type)
+    mat = cast((c_double * N * _NCOEFFS)(), POINTER(c_double))
+    _SOSDLL.jl_butterband(
+        c_int(order), c_double(flow), c_double(fhigh), c_double(fs), c_int(e_type), mat
     )
     sosmat = np.reshape(np.array([mat[i] for i in range(N * _NCOEFFS)]), (N, _NCOEFFS))
     (status, stg) = stable(sosmat)
+    del mat
     if not status:
         raise ValueError(
             f"SOS matrix from butterlib produces unstable poles at stage ({stg})."
         )
-    del mat
     return sosmat
