@@ -2,8 +2,9 @@
 # Butterworth design makefile
 #=================================
 
-SRC_DIR = $(CURDIR)/include
+LIB_DIR = $(CURDIR)/core/lib
 BUILD_DIR = $(CURDIR)/bin
+SRC_DIR = $(CURDIR)/core/main
 CORE_FILES = $(SRC_DIR)/butter2sos_design.c $(SRC_DIR)/butter2sos_design.h
 CC = gcc
 CFLAGS = -std=c99 -I$(SRC_DIR)
@@ -29,8 +30,8 @@ lib:
 
 libcopy:
 	@echo #== copying DLL into relevant sub-project directories ==#
-	cp $(BUILD_DIR)/$(LIB_TARGET).dll $(CURDIR)/python/pybutter/src/pybutter
-	cp $(BUILD_DIR)/$(LIB_TARGET).dll $(CURDIR)/butter2sos.jl
+	cp $(BUILD_DIR)/$(LIB_TARGET).dll $(CURDIR)/src/pybutter
+	cp $(BUILD_DIR)/$(LIB_TARGET).dll $(CURDIR)/julia
 
 .PHONY: clean
 
