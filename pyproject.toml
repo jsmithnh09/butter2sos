@@ -1,6 +1,6 @@
 [project]
 name = "pybutter"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = ["scipy"]
 requires-python = ">=3.10"
 

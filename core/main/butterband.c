@@ -17,44 +17,62 @@
  */
 
 #include "butter2sos_design.h"
-#include <unistd.h>
+#ifdef _WIN32
+  #include <io.h>
+#else
+  #include <unistd.h>
+#endif
 
 int main(int argc, char **argv)
 {
-  int index, c;
-  static char usage[] = "%s: -n <order> -l <lowband> -h <highband> -r <samplerate> -t <type 0,1>\n";
   int order, type, N = 0;
   real64_t fs, fc1, fc2;
   real64_t *mat;
-  if (argc == 1) {
-    printf(usage, argv[0]);
-    exit(0);
-  }
-  while ((c = getopt(argc, argv, "n:l:h:r:t:")) != -1) {
-    switch (c) {
-      case 'n':
-        order = atoi(optarg);
-        break;
-      case 'r':
-        fs = atof(optarg);
-        break;
-      case 'l':
-        fc1 = atof(optarg);
-        break;
-      case 'h':
-        fc2 = atof(optarg);
-        break;
-      case 't':
-        type = atoi(optarg);
-        break;
-      case '?':
-        fprintf(stderr, "ERROR: unknown argument %c provided\n", optopt);
-        exit(1);
-      default:
-        printf(usage, argv[0]);
-        exit(1);
-      }
-  }
+  #ifdef _WIN32
+    static char usage[] = "%s: <order> <lowband> <highband> <samplerate> <type 0,1>\n";
+    if (argc == 1) {
+      printf(usage, argv[0]);
+      exit(0);
+    }
+    if (argc != 6) {
+      fprintf(stderr, usage);
+      fprintf(stderr, "ERROR: Invalid # of input arguments.\n");
+      exit(1);
+    }
+    order = atoi(argv[1]);
+    fc1 = atof(argv[2]);
+    fc2 = atof(argv[3]);
+    fs = atof(argv[4]);
+    type = atoi(argv[5]);
+  #else
+    int index, c;
+    static char usage[] = "%s: -n <order> -l <lowband> -h <highband> -r <samplerate> -t <type 0,1>\n";
+    while ((c = getopt(argc, argv, "n:l:h:r:t:")) != -1) {
+      switch (c) {
+        case 'n':
+          order = atoi(optarg);
+          break;
+        case 'r':
+          fs = atof(optarg);
+          break;
+        case 'l':
+          fc1 = atof(optarg);
+          break;
+        case 'h':
+          fc2 = atof(optarg);
+          break;
+        case 't':
+          type = atoi(optarg);
+          break;
+        case '?':
+          fprintf(stderr, "ERROR: unknown argument %c provided\n", optopt);
+          exit(1);
+        default:
+          printf(usage, argv[0]);
+          exit(1);
+        }
+    }
+  #endif
 
   // confirm the input parameters are suitable.
   if (order <= 0) {

@@ -56,9 +56,14 @@ static real64_t* linspace(const int start, const int stop, const int step, int *
  *      z1 + z2 = (re(z1) + re(z2)) + (im(z1) + im(z2))i  *
  **********************************************************/
 
-static inline complex64_t compadd(complex64_t z1, complex64_t z2)
+static complex64_t compadd(complex64_t z1, complex64_t z2)
 {
-  return (complex64_t)((creal(z1) + creal(z2)) + (cimag(z1) + cimag(z2))*I);
+  #ifdef _WIN32
+    complex64_t res = {creal(z1) + creal(z2), cimag(z1) + cimag(z2)};
+    return res;
+  #else
+    return (complex64_t)((creal(z1) + creal(z2)) + (cimag(z1) + cimag(z2))*I);
+  #endif
 }
 
 /**********************************************************
@@ -67,9 +72,14 @@ static inline complex64_t compadd(complex64_t z1, complex64_t z2)
  *      z1 - z2 = (re(z1) - re(z2)) + (im(z1) - im(z2))i  *
  **********************************************************/
 
-static inline complex64_t compsub(complex64_t z1, complex64_t z2)
+static complex64_t compsub(complex64_t z1, complex64_t z2)
 {
-  return (complex64_t)((creal(z1) - creal(z2)) + (cimag(z1) - cimag(z2))*I);
+  #ifdef _WIN32
+    complex64_t res = {creal(z1)-creal(z2), cimag(z1)-cimag(z2)};
+    return res;
+  #else
+    return (complex64_t)((creal(z1) - creal(z2)) + (cimag(z1) - cimag(z2))*I);
+  #endif
 }
 
 /*************************************************************
@@ -79,9 +89,9 @@ static inline complex64_t compsub(complex64_t z1, complex64_t z2)
  *      r = abs(z), phi = angle(z).                          *
  *************************************************************/
 
-static inline complex64_t compsqrt(complex64_t x)
+static complex64_t compsqrt(complex64_t x)
 {
-  return (complex64_t) csqrt(x);
+  return csqrt(x);
 }
 
 /**********************************************************************
@@ -95,7 +105,12 @@ static inline complex64_t compsqrt(complex64_t x)
 
 static inline complex64_t euler(real64_t x)
 {
-  return (complex64_t) (cos(x) + sin(x)*I);
+  #ifdef _WIN32
+    complex64_t res = {cos(x), sin(x)};
+    return res;
+  #else
+    return (complex64_t) (cos(x) + sin(x)*I);
+  #endif
 }
 
 /*************************************************
@@ -169,7 +184,12 @@ static complex64_t* seedpoles(const int order, int* numpoles)
   // append the pole at (-1, 0) if odd order, [1].
   if (order % 2)
   {
-    poles[posInd] = (real64_t)-1.0 + 0.0*I;
+    #ifdef _WIN32
+      poles[posInd]._Val[0] = (real64_t)-1.0;
+      poles[posInd]._Val[1] = (real64_t)0.0;
+    #else
+      poles[posInd] = (real64_t)-1.0 + 0.0*I;
+    #endif
   }
 
   // indicate the length.
@@ -293,7 +313,12 @@ static void lpfwarp(complex64_t* poles, int numpoles, real64_t* zeros, int* nzer
 {
   for (int pInd = 0; pInd < numpoles; pInd++)
   {
-    poles[pInd] = (complex64_t) (creal(poles[pInd]) * omega) + (cimag(poles[pInd] * omega))*I; // w .* p
+    #ifdef _WIN32
+      poles[pInd]._Val[0] = creal(poles[pInd]) * omega;
+      poles[pInd]._Val[1] = cimag(poles[pInd]) * omega;
+    #else
+      poles[pInd] = (complex64_t) (creal(poles[pInd]) * omega) + (cimag(poles[pInd] * omega))*I; // w .* p
+    #endif    
   }
   // k = k * w^(order), where order = Np - Nz (no zeros in butterworth design.)
   *gain *= pow(omega, numpoles); 
@@ -322,7 +347,12 @@ static complex64_t compdiv(complex64_t x, complex64_t y)
   real64_t num1 = creal(x)*creal(y) + cimag(x)*cimag(y);
   real64_t num2 = cimag(x)*creal(y) - creal(x)*cimag(y);
   real64_t den = pow(creal(y), 2) + pow(cimag(y), 2);
-  return (complex64_t)(num1/den) + (num2/den)*I;
+  #ifdef _WIN32
+    complex64_t res = {num1/den, num2/den};
+    return res;
+  #else
+    return (complex64_t)(num1/den) + (num2/den)*I;
+  #endif
 }
 
 
@@ -343,7 +373,12 @@ static complex64_t compmult(complex64_t x, complex64_t y)
    */
   real64_t re = creal(x)*creal(y) - cimag(x)*cimag(y);
   real64_t im = creal(x)*cimag(y) + cimag(x)*creal(y);
-  return (complex64_t) re + im*I;
+  #ifdef _WIN32
+    complex64_t res = {re, im};
+    return res;
+  #else
+    return (complex64_t) re + im*I;
+  #endif
 }
 
 
@@ -359,12 +394,20 @@ static complex64_t compmult(complex64_t x, complex64_t y)
 
 static void hpfwarp(complex64_t* poles, const int numpoles, real64_t* zeros, int* nzeros, real64_t* gain, const real64_t omega)
 {
-  complex64_t wc = omega + (real64_t)0.0*I;              // omega + 0i, since frequency is real.
-  real64_t gshift = (real64_t)0.0;                    // gain change from HPF warping.
-  complex64_t accum = (real64_t)1.0 + 0*I;               // accumulated gain change in poles.
-  complex64_t negone = (real64_t)-1.0 + 0*I;             // negative one.
-  complex64_t posone = (real64_t)1.0 + 0.0*I;            // positive one.
-  complex64_t interm = (real64_t)0.0 + 0.0*I;            // intermediate value from -1*p[i].
+  real64_t gshift = (real64_t)0.0;                       // gain change from HPF warping.
+  #ifdef _WIN32
+    complex64_t wc =     {(real64_t)omega, (real64_t)0.0};
+    complex64_t accum =  {(real64_t)1.0,   (real64_t)0.0};
+    complex64_t negone = {(real64_t)-1.0,  (real64_t)0.0};
+    complex64_t posone = {(real64_t)1.0,   (real64_t)0.0};
+    complex64_t interm = {(real64_t)0.0,   (real64_t)0.0};
+  #else
+    complex64_t wc = omega + (real64_t)0.0*I;              // omega + 0i, since frequency is real.
+    complex64_t accum = (real64_t)1.0 + 0*I;               // accumulated gain change in poles.
+    complex64_t negone = (real64_t)-1.0 + 0*I;             // negative one.
+    complex64_t posone = (real64_t)1.0 + 0.0*I;            // positive one.
+    complex64_t interm = (real64_t)0.0 + 0.0*I;            // intermediate value from -1*p[i].
+  #endif
   
   for (int pInd = 0; pInd < numpoles; pInd++)
   {
@@ -404,15 +447,23 @@ static void hpfwarp(complex64_t* poles, const int numpoles, real64_t* zeros, int
 static void bpfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, int* numzeros, real64_t* gain, const real64_t* bwidth, const real64_t* Wn)
 {
   int order = *numpoles;                // need original order for the gain approximation.
-  complex64_t bw2 = (*bwidth)/2 + 0.0*I;  // half bandwidth, bw/2.
-  complex64_t bsq, bsum, pold, cWn;       // intermediate complex values for warp calculations.
-  cWn = (real64_t)*Wn + 0.0*I;
-  complex64_t Wn2 = compmult(cWn, cWn); // complex Wn^2.
+  
+  #ifdef _WIN32
+    complex64_t bw2 = {(real64_t)(*bwidth)/2, (real64_t)0.0};
+    complex64_t bsq, bsum, pold;
+    complex64_t cWn = {*Wn, (real64_t)0.0};
+    complex64_t Wn2 = compmult(cWn, cWn);
+  #else
+    complex64_t bw2 = (*bwidth)/2 + 0.0*I;  // half bandwidth, bw/2.
+    complex64_t bsq, bsum, pold, cWn;       // intermediate complex values for warp calculations.
+    cWn = (real64_t)*Wn + 0.0*I;
+    complex64_t Wn2 = compmult(cWn, cWn); // complex Wn^2.
+  #endif
   
   // p * bw/2 for the original data.
   for (int pInd = 0; pInd < (*numpoles); pInd++)
   {
-    poles[pInd] = (complex64_t)compmult(poles[pInd], bw2);  
+    poles[pInd] = compmult(poles[pInd], bw2);  
   }
   
   // [1,2,3,4] -> [1, 0, 2, 0, 3, 0, 4, 0]. expand the array.
@@ -420,8 +471,16 @@ static void bpfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, int* 
   for (int pInd = 2*(*numpoles)-2; pInd > 0; pInd-=2)
   {
     poles[pInd] = poles[oldInd];
-    poles[pInd+1] = (complex64_t)0.0 + 0.0*I;
-    poles[oldInd--] = (complex64_t)0.0 + 0.0*I;
+    #ifdef _WIN32
+      poles[pInd+1]._Val[0] = (real64_t)0.0;
+      poles[pInd+1]._Val[1] = (real64_t)0.0;
+      poles[oldInd]._Val[0] = (real64_t)0.0;
+      poles[oldInd]._Val[1] = (real64_t)0.0;
+      oldInd--;
+    #else
+      poles[pInd+1] = (complex64_t)0.0 + 0.0*I;
+      poles[oldInd--] = (complex64_t)0.0 + 0.0*I;
+    #endif
   }
   
   // compute the p +/- sqrt(p^2 - Wn^2) for each group.
@@ -429,14 +488,14 @@ static void bpfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, int* 
   {
     // extract pole intermediate values for BPF warping.
     pold = poles[2*pInd];
-    bsum = (complex64_t)compsub(compmult(pold, pold), Wn2); // p^2 - Wn^2
-    bsq = (complex64_t)csqrt(bsum); // sqrt(p^2 - Wn^2)
+    bsum = compsub(compmult(pold, pold), Wn2); // p^2 - Wn^2
+    bsq = compsqrt(bsum); // sqrt(p^2 - Wn^2)
     
     // p(i)   = p(i) + sqrt(p(i)^2 - Wn^2).
     // p(i+1) = p(i) - sqrt(p(i)^2 - Wn^2).
     
-    poles[2*pInd] = (complex64_t)compadd(pold, bsq);
-    poles[2*pInd+1] = (complex64_t)compsub(pold,  bsq);
+    poles[2*pInd] = compadd(pold, bsq);
+    poles[2*pInd+1] = compsub(pold,  bsq);
   }
   
   // indicate the new number of poles from this process.
@@ -505,9 +564,15 @@ static void polesort(complex64_t* poles, int numpoles, int order)
 
 static void bsfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, real64_t* gain, const real64_t* bwidth, const real64_t* Wn)
 {
-  complex64_t bw2 = (*bwidth / 2.0) + 0.0*I;
-  complex64_t pold, bsum, bsq;
-  complex64_t Wn2 = compmult((complex64_t)*Wn+0.0*I, (complex64_t)*Wn+0.0*I); // complex Wn^2.
+  #ifdef _WIN32
+    complex64_t bw2 = {(real64_t)(*bwidth / 2.0), (real64_t)0.0};
+    complex64_t pold, bsum, bsq;
+    complex64_t Wn2 = {(real64_t)(*Wn)*(*Wn), (real64_t)0.0};
+  #else
+    complex64_t bw2 = (*bwidth / 2.0) + 0.0*I;
+    complex64_t pold, bsum, bsq;
+    complex64_t Wn2 = compmult((complex64_t)*Wn+0.0*I, (complex64_t)*Wn+0.0*I); // complex Wn^2.
+  #endif
   
   // gain shift is just 1, since k * real(prod(-z)/prod(-p)) = 1
   // when the poles are around the unit circle and no zeros.
@@ -524,15 +589,30 @@ static void bsfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, real6
   for (int pInd = 2*(*numpoles)-2; pInd > 0; pInd-=2)
   {
     poles[pInd] = poles[oldInd];
-    poles[pInd+1] = (complex64_t)0.0 + 0.0*I;
-    poles[oldInd--] = (complex64_t)0.0 + 0.0*I;
+    #ifdef _WIN32
+      poles[pInd+1]._Val[0] = (real64_t)0.0;
+      poles[pInd+1]._Val[1] = (real64_t)0.0;
+      poles[oldInd]._Val[0] = (real64_t)0.0;
+      poles[oldInd]._Val[1] = (real64_t)0.0;
+      oldInd--;
+    #else
+      poles[pInd+1] = (complex64_t)0.0 + 0.0*I;
+      poles[oldInd--] = (complex64_t)0.0 + 0.0*I;
+    #endif
   }
   
   // zeros already same length as poles, (0+/-j*Wn).
   for (int zInd = 0; zInd < *numpoles; zInd++)
   {
-    zeros[2*zInd] = (complex64_t)0.0 + (*Wn)*I;
-    zeros[2*zInd+1] = (complex64_t)0.0 - (*Wn)*I;
+    #ifdef _WIN32
+      zeros[2*zInd]._Val[0] = (real64_t)0.0;
+      zeros[2*zInd]._Val[1] = *Wn;
+      zeros[2*zInd+1]._Val[0] = (real64_t)0.0;
+      zeros[2*zInd+1]._Val[1] = (real64_t)-1 * (*Wn);
+    #else
+      zeros[2*zInd] = (complex64_t)0.0 + (*Wn)*I;
+      zeros[2*zInd+1] = (complex64_t)0.0 - (*Wn)*I;
+    #endif
   }
   
   // calculating p +/- sqrt(p^2 - Wn^2)
@@ -563,10 +643,17 @@ static void bsfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, real6
 
 static void bilinear_band_s2z(complex64_t* poles, const int* numpoles, complex64_t* zeros, int* numzeros, real64_t* gain, const real64_t* fs)
 {
-  complex64_t fs2 = (real64_t)2*(*fs) + 0.0*I;  // 2/T equivalent.
-  complex64_t pos1 = (real64_t)1.0 + 0.0*I;  // bilinear operation for (z+1)/(z-1)
-  complex64_t pgain = (real64_t)1.0 + 0.0*I;
-  complex64_t zgain = (real64_t)1.0 + 0.0*I; // zero singularity gain also starts at 1.
+  #ifdef _WIN32
+    complex64_t fs2 = {(real64_t)2*(*fs), (real64_t)0.0};
+    complex64_t pos1 =  {(real64_t)1.0, (real64_t)0.0};
+    complex64_t pgain = {(real64_t)1.0, (real64_t)0.0};
+    complex64_t zgain = {(real64_t)1.0, (real64_t)0.0};
+  #else
+    complex64_t fs2 = (real64_t)2*(*fs) + 0.0*I;  // 2/T equivalent.
+    complex64_t pos1 = (real64_t)1.0 + 0.0*I;  // bilinear operation for (z+1)/(z-1)
+    complex64_t pgain = (real64_t)1.0 + 0.0*I;
+    complex64_t zgain = (real64_t)1.0 + 0.0*I; // zero singularity gain also starts at 1.
+  #endif
   complex64_t num, den, warp, sub;            // intermediate values.
 
   // prod(fs2 - p)
@@ -689,7 +776,12 @@ real64_t* butterband(const int order, real64_t flo, real64_t fhi, real64_t fs, c
     // bilinear warps poles to [+1,+1,....-1,-1].
     for (int zInd = 0; zInd < npoles; zInd++)
     {
-      zeros[zInd] = zInd < nzeros ? (complex64_t)0.0 + 0.0*I : (complex64_t)-1.0 + 0.0;
+      #ifdef _WIN32
+        zeros[zInd]._Val[0] = (real64_t)(zInd < nzeros ? 0.0 : -1.0);
+        zeros[zInd]._Val[1] = (real64_t)(0.0);
+      #else
+        zeros[zInd] = zInd < nzeros ? (complex64_t)0.0 + 0.0*I : (complex64_t)-1.0 + 0.0*I;
+      #endif
     }
   }
   else
@@ -801,8 +893,13 @@ real64_t* butterband(const int order, real64_t flo, real64_t fhi, real64_t fs, c
 
 static void bilinear_s2z(complex64_t* poles, const int numpoles, const int numzeros, real64_t* gain, const real64_t fs)
 {
-  complex64_t fs2 = (real64_t)2*fs + 0.0*I;  // 2/T equivalent in bilinear xform.
-  complex64_t pgain = (real64_t)1.0 + 0.0*I; // complex +1, (starting value for pole gain shift.)
+  #ifdef _WIN32
+    complex64_t fs2 = {(real64_t)2*fs, (real64_t)0.0};
+    complex64_t pgain = {(real64_t)1.0, (real64_t)0.0};
+  #else
+    complex64_t fs2 = (real64_t)2*fs + 0.0*I;  // 2/T equivalent in bilinear xform.
+    complex64_t pgain = (real64_t)1.0 + 0.0*I; // complex +1, (starting value for pole gain shift.)
+  #endif
   complex64_t num, den, warp, psub;           // intermediate values for bilinear xform.
   real64_t zgain;                          // gain-shift for zeros.
   
@@ -810,7 +907,12 @@ static void bilinear_s2z(complex64_t* poles, const int numpoles, const int numze
   for (int pInd = 0; pInd < numpoles; pInd++)
   {
     // (a+bi) - (c+di) = (a - c) + (b - d)*i. Fs-p -> (Fs-real(p)) + (0 - imag(p))i, since Fs is real.
-    psub = (complex64_t)((creal(fs2) - creal(poles[pInd])) + (cimag(fs2) - cimag(poles[pInd]))*I);
+    #ifdef _WIN32
+      psub._Val[0] = creal(fs2) - creal(poles[pInd]);
+      psub._Val[1] = cimag(fs2) - cimag(poles[pInd]);
+    #else  
+      psub = (complex64_t)((creal(fs2) - creal(poles[pInd])) + (cimag(fs2) - cimag(poles[pInd]))*I);
+    #endif
     pgain = compmult(pgain, psub);
   }
   
@@ -821,8 +923,15 @@ static void bilinear_s2z(complex64_t* poles, const int numpoles, const int numze
     // (a + c) + (b + d)i, 1 + (p/Fs) -> (1 + Re(p/Fs)) + (0 + Im(p/Fs))i
     // (a - c) + (b - d)i, 1 - (p/Fs) -> (1 - Re(p/Fs)) + (0 - Im(p/Fs))i
     warp = compdiv(poles[pInd], fs2);
-    num = ((real64_t)1.0 + creal(warp)) + cimag(warp)*I;
-    den = ((real64_t)1.0 - creal(warp)) + ((real64_t)0.0 - cimag(warp))*I;
+    #ifdef _WIN32
+      num._Val[0] = (real64_t)1.0 + creal(warp);
+      num._Val[1] = cimag(warp);
+      den._Val[0] = (real64_t)1.0 - creal(warp);
+      den._Val[1] = (real64_t)0.0 - cimag(warp);
+    #else
+      num = ((real64_t)1.0 + creal(warp)) + cimag(warp)*I;
+      den = ((real64_t)1.0 - creal(warp)) + ((real64_t)0.0 - cimag(warp))*I;
+    #endif
     poles[pInd] = compdiv(num, den);
   }
   
@@ -842,7 +951,12 @@ static void bilinear_s2z(complex64_t* poles, const int numpoles, const int numze
   }
 
   // k = k * real(prod(Fs-z)/prod(Fs-p))
-  *gain *= creal(compdiv((complex64_t)(zgain + 0.0*I), pgain));
+  #ifdef _WIN32
+    complex64_t numer = {zgain, (real64_t)0.0};
+    *gain *= creal(compdiv(numer, pgain));
+  #else
+    *gain *= creal(compdiv((complex64_t)(zgain + 0.0*I), pgain));
+  #endif
 }
 
 /****************************************************************

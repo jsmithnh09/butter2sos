@@ -13,9 +13,12 @@
 #include <stdlib.h>
 #include <complex.h>
 
-
 typedef double real64_t;
-typedef complex double complex64_t;
+#ifdef _WIN32
+    typedef _Dcomplex complex64_t;
+#else
+    typedef complex double complex64_t;
+#endif
 
 #ifndef M_PI
 #    define M_PI 3.14159265358979323846
