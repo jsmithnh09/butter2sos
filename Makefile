@@ -7,7 +7,7 @@ BUILD_DIR = $(CURDIR)/bin
 SRC_DIR = $(CURDIR)/core/main
 CORE_FILES = $(SRC_DIR)/butter2sos_design.c $(SRC_DIR)/butter2sos_design.h
 CC = gcc
-CFLAGS = -std=c99 -I$(SRC_DIR)
+CFLAGS = -std=c99 -I$(LIB_DIR)
 DLLFLAGS = -shared
 SBAND_TARGET = butter2sos
 MBAND_TARGET = butterband
