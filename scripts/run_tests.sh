@@ -6,7 +6,7 @@
 pytest test
 test_outputs=$()
 exit_code=$?
-if [ "exit_code" == "0" ]; then
+if [ "$exit_code" == "0" ]; then
     echo "Test complete!";
     exit 0;
 else
