@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     fs = atof(argv[3]);
     type = atoi(argv[4]);
   #else
-    int index, c;
+    int c;
     static char usage[] = "%s: -n <order> -c <cornerfrequency> -r <samplerate> -t <type 0,1,2>\n";
     if (argc == 1) {
       printf(usage, argv[0]);

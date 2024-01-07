@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     fs = atof(argv[4]);
     type = atoi(argv[5]);
   #else
-    int index, c;
+    int c;
     static char usage[] = "%s: -n <order> -l <lowband> -h <highband> -r <samplerate> -t <type 0,1>\n";
     while ((c = getopt(argc, argv, "n:l:h:r:t:")) != -1) {
       switch (c) {
