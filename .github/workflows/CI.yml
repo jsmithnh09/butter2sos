@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Copy DLL to package
+        run: ./scripts/copy_lib.sh
       - name: Build wheel
         run: ./scripts/pip_install.sh
       - name: Run pytest

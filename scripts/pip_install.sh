@@ -5,7 +5,6 @@
 #
 # Note that this script must be at the root level!
 #========================================================================
-cp bazel-bin/lib/butterlib.dll src/pybutter
+
 pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
 pip install .
