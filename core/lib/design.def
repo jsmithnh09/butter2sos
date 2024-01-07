@@ -1,6 +1,0 @@
-LIBRARY BUTTERLIB
-EXPORTS
-    jl_butter @1
-    jl_butterband @2
-    butter @3
-    butterband @4

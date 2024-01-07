@@ -1,2 +1,0 @@
-butter*
-jl_butter*
