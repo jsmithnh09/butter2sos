@@ -17,41 +17,62 @@
  */
 
 #include "butter2sos_design.h"
-#include <unistd.h>
+#ifdef _WIN32
+  #include <io.h>
+#else
+  #include <unistd.h>
+#endif
 
 int main(int argc, char **argv)
 {
-  int index, c;
-  static char usage[] = "%s: -n <order> -c <cornerfrequency> -r <samplerate> -t <type 0,1,2>\n";
+  
   int order, type, N = 0;
   real64_t fs, fc;
   real64_t *mat;
-  if (argc == 1) {
-    printf(usage, argv[0]);
-    exit(0);
-  }
-  while ((c = getopt (argc, argv, "n:c:r:t:")) != -1) {
-    switch (c) {
-      case 'n':
-        order = atoi(optarg);
-        break;
-      case 'r':
-        fs = atof(optarg);
-        break;
-      case 'c':
-        fc = atof(optarg);
-        break;
-      case 't':
-        type = atoi(optarg);
-        break;
-      case '?':
-        fprintf(stderr, "ERROR: unknown argument %c provided\n", optopt);
-        exit(1);
-      default:
-        printf(usage, argv[0]);
-        exit(1);
-      }
-  }
+  
+  #ifdef _WIN32
+    static char usage[] = "%s: <order> <corner_frequency> <sample_rate> <type 0,1,2>\n";
+    if (argc == 1) {
+      printf(usage, argv[0]);
+      exit(0);
+    } else if (argc != 5) {
+      fprintf(stderr, "Invalid # of input arguments.\n");
+      exit(1);
+    }
+    order = atoi(argv[1]);
+    fc = atof(argv[2]);
+    fs = atof(argv[3]);
+    type = atoi(argv[4]);
+  #else
+    int index, c;
+    static char usage[] = "%s: -n <order> -c <cornerfrequency> -r <samplerate> -t <type 0,1,2>\n";
+    if (argc == 1) {
+      printf(usage, argv[0]);
+      exit(0);
+    }
+    while ((c = getopt (argc, argv, "n:c:r:t:")) != -1) {
+      switch (c) {
+        case 'n':
+          order = atoi(optarg);
+          break;
+        case 'r':
+          fs = atof(optarg);
+          break;
+        case 'c':
+          fc = atof(optarg);
+          break;
+        case 't':
+          type = atoi(optarg);
+          break;
+        case '?':
+          fprintf(stderr, "ERROR: unknown argument %c provided\n", optopt);
+          exit(1);
+        default:
+          printf(usage, argv[0]);
+          exit(1);
+        }
+    }
+  #endif
 
   // confirm the input parameters are suitable.
   if (order <= 0) {

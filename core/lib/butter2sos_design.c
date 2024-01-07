@@ -474,8 +474,8 @@ static void bpfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, int* 
     #ifdef _WIN32
       poles[pInd+1]._Val[0] = (real64_t)0.0;
       poles[pInd+1]._Val[1] = (real64_t)0.0;
-      poles[oldInd-1]._Val[0] = (real64_t)0.0;
-      poles[oldInd-1]._Val[1] = (real64_t)0.0;
+      poles[oldInd]._Val[0] = (real64_t)0.0;
+      poles[oldInd]._Val[1] = (real64_t)0.0;
       oldInd--;
     #else
       poles[pInd+1] = (complex64_t)0.0 + 0.0*I;
@@ -592,8 +592,8 @@ static void bsfwarp(complex64_t* poles, int* numpoles, complex64_t* zeros, real6
     #ifdef _WIN32
       poles[pInd+1]._Val[0] = (real64_t)0.0;
       poles[pInd+1]._Val[1] = (real64_t)0.0;
-      poles[oldInd-1]._Val[0] = (real64_t)0.0;
-      poles[oldInd-1]._Val[0] = (real64_t)0.0;
+      poles[oldInd]._Val[0] = (real64_t)0.0;
+      poles[oldInd]._Val[1] = (real64_t)0.0;
       oldInd--;
     #else
       poles[pInd+1] = (complex64_t)0.0 + 0.0*I;
@@ -780,7 +780,7 @@ real64_t* butterband(const int order, real64_t flo, real64_t fhi, real64_t fs, c
         zeros[zInd]._Val[0] = (real64_t)(zInd < nzeros ? 0.0 : -1.0);
         zeros[zInd]._Val[1] = (real64_t)(0.0);
       #else
-        zeros[zInd] = zInd < nzeros ? (complex64_t)0.0 + 0.0*I : (complex64_t)-1.0 + 0.0;
+        zeros[zInd] = zInd < nzeros ? (complex64_t)0.0 + 0.0*I : (complex64_t)-1.0 + 0.0*I;
       #endif
     }
   }
