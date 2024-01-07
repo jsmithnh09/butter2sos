@@ -7,6 +7,8 @@ Based on the target filter type, the zero positions are already known, and the b
 
 For external language interfacing, the `jl_butter` and `jl_butterband` provide the argument inputs where the external language provides a buffer, and the underlying functions will populate the coefficients, (SOS matrix is treated as row-major via C-conventions, column-major orientation would need post-processing.)
 
+To use this within Python, you can run `pip install .` and compare the results against `scipy.signal.butter`. The zero/pole ordering is different, but python tests show that the frequency response is within precision.
+
 ## Bulding
 To build, a `makefile` is present for generating the different binaries and libraries that are present. In an effort to use more "modern" build tools, [bazel](https://bazel.build/) files are present as well.
 
