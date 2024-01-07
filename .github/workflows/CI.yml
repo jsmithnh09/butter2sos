@@ -31,7 +31,7 @@ jobs:
         run: bazel build //...
       - name: Copy DLL to package
         run: ./scripts/copy_lib.sh
-      - name: Build wheel
+      - name: Build and install the wheel
         run: ./scripts/pip_install.sh
       - name: Run pytest
         run: ./scripts/run_tests.sh
