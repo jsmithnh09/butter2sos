@@ -5,7 +5,7 @@
 :: this needs to be executed from the projects root folder.
 @echo off
 set CI_ROOT_DIR=%cd%
-set DLL_SRC_LOC="%CI_ROOT_DIR%\lib\bazel-bin\lib\butterlib.dll"
+set DLL_SRC_LOC="%CI_ROOT_DIR%\bazel-bin\lib\butterlib.dll"
 if not exist %DLL_SRC_LOC% (
     echo "The DLL artifact is missing. Aborting."
     exit 1
