@@ -9,19 +9,44 @@ on:
 jobs:
   ci:
     name: CI Bazel build
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: true
+
+      # going to test on windows and ubuntu.
+      matrix:
+        os: [
+          ubuntu-latest,
+          windows-latest
+        ]
     
     steps:
       - uses: actions/checkout@v4
       - uses: bazelbuild/setup-bazelisk@v2
+      
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      
       - name: Run the bazel build
         run: bazel build //...
-      - name: Copy DLL to package
+      
+      - name: Copy .SO to package on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
         run: ./scripts/copy_lib.sh
-      - name: Build and install the wheel
-        run: ./scripts/pip_install.sh
-      - name: Run pytest
-        run: ./scripts/run_tests.sh
+
+      - name: Copy .DLL to package on Windows
+        if: matrix.os == 'windows-latest'
+        run: .\scripts\copy_lib.bat
+
+      # pip should inter-op on whichever platform correctly.
+      - name: Setup pip dependencies        
+        run: |
+            pip install --upgrade pip setuptools wheel
+            pip install pytest
+            pip install .
+
+      # attempt to run via CI instead of external shell script.
+      - name: Run python tests
+        run: pytest test
