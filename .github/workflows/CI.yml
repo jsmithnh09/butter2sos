@@ -20,8 +20,8 @@ jobs:
       - name: Run the bazel build
         run: bazel build //...
       - name: Copy DLL to package
-        run: ./scripts/copy_lib.sh
+        run: ./ci/copy_lib.sh
       - name: Build and install the wheel
-        run: ./scripts/pip_install.sh
+        run: ./ci/pip_install.sh
       - name: Run pytest
-        run: ./scripts/run_tests.sh
+        run: ./ci/run_tests.sh
