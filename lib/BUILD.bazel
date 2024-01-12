@@ -7,7 +7,7 @@ cc_shared_library(
 
 cc_library(
     name = "design",
-    srcs = ["butter2sos_design.c"],
-    hdrs = ["butter2sos_design.h"],
+    srcs = ["butter2sos_design.c", "version.h"],
+    hdrs = ["butter2sos_design.h", "version.h"],
     visibility = ["//programs:__pkg__"],
 )

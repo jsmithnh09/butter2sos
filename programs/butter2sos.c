@@ -17,6 +17,7 @@
  */
 
 #include "butter2sos_design.h"
+#include "version.h"
 #ifdef _WIN32
   #include <io.h>
 #else
@@ -31,9 +32,9 @@ int main(int argc, char **argv)
   real64_t *mat;
   
   #ifdef _WIN32
-    static char usage[] = "%s: <order> <corner_frequency> <sample_rate> <type 0,1,2>\n";
+    static char usage[] = "%s v%s: <order> <corner_frequency> <sample_rate> <type 0,1,2>\n";
     if (argc == 1) {
-      printf(usage, argv[0]);
+      printf(usage, argv[0], BUTTER_SOS_VERSION);
       exit(0);
     } else if (argc != 5) {
       fprintf(stderr, "Invalid # of input arguments.\n");
@@ -45,9 +46,9 @@ int main(int argc, char **argv)
     type = atoi(argv[4]);
   #else
     int c;
-    static char usage[] = "%s: -n <order> -c <cornerfrequency> -r <samplerate> -t <type 0,1,2>\n";
+    static char usage[] = "%s v%s: -n <order> -c <cornerfrequency> -r <samplerate> -t <type 0,1,2>\n";
     if (argc == 1) {
-      printf(usage, argv[0]);
+      printf(usage, argv[0], BUTTER_SOS_VERSION);
       exit(0);
     }
     while ((c = getopt (argc, argv, "n:c:r:t:")) != -1) {
