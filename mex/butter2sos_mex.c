@@ -68,7 +68,7 @@ void mexFunction(int nlhs, mxArray *plhs[], const int nrhs, const mxArray *prhs[
 
     // set pointer and indicate dimensions.
     mxSetPr(plhs[0], buff);
-    mxSetM(plhs[0], biquads);
+    mxSetM(plhs[0], nbiquads);
     mxSetN(plhs[0], N_SOSCOEFFS);
 
     // don't free buff since that points to the output.

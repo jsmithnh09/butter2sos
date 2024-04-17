@@ -57,7 +57,7 @@ void mexFunction(int nlhs, mxArray *plhs[], const int nrhs, const mxArray *prhs[
     // re-format the output buffer since MATLAB expects column major data.
     idx = 0;
     for (coefIdx = 0; coefIdx < N_SOSCOEFFS; coefIdx++) {
-        for (stgIdx = 0; stgIdx < nbiquads; stgIdx++) {
+        for (stgIdx = 0; stgIdx < numbiquads; stgIdx++) {
             buff[idx++] = (double)mat[coefIdx+(N_SOSCOEFFS*stgIdx)];
         }
     }
@@ -74,7 +74,7 @@ void mexFunction(int nlhs, mxArray *plhs[], const int nrhs, const mxArray *prhs[
 
     // set pointer and indicate dimensions.
     mxSetPr(plhs[0], buff);
-    mxSetM(plhs[0], biquads);
+    mxSetM(plhs[0], numbiquads);
     mxSetN(plhs[0], N_SOSCOEFFS);
 
     // don't free buff since that points to the output.
