@@ -26,9 +26,11 @@
 
 int main(int argc, char **argv)
 {
-  
-  int order, type, N = 0;
-  real64_t fs, fc;
+  int order = 0;
+  int type = 0;
+  int N = 0;
+  real64_t fs = 1.0; 
+  real64_t fc = 0.5;
   real64_t *mat;
   
   #ifdef _WIN32

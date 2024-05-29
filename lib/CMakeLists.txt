@@ -1,5 +1,5 @@
 #-------------------------------------------
-# BUTTERLIB static library for programs.
+# [LIB]BUTTER static library for programs.
 #-------------------------------------------
 add_library(design STATIC butter2sos_design.c)
 target_compile_features(design PUBLIC cxx_std_11)
@@ -7,6 +7,7 @@ if (WIN32 AND MSVC)
     target_compile_options(design PUBLIC /W4)
 else()
     target_compile_options(design PUBLIC -Wall -O2)
+    target_link_libraries(design m)
 endif()
 
 #--------------------------------------------------
@@ -18,5 +19,6 @@ if (WIN32 AND MSVC)
     target_compile_options(butterlib PUBLIC /W4)
 else()
     target_compile_options(butterlib PUBLIC -Wall -O2)
+    target_link_libraries(design m)
 endif()
 install(TARGETS butterlib RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/src/pybutter)

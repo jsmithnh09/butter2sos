@@ -283,7 +283,7 @@ void printsosmatrix(const real64_t* matrix, int nstages)
 /*******************************************
  *  Function printcarray                   *
  *    prints out a complex array.          *
- *******************************************/
+ *******************************************
 
 static void printcarray(const complex64_t* x, const int len)
 {
@@ -297,7 +297,7 @@ static void printcarray(const complex64_t* x, const int len)
     printf("%p : %2.5f + %2.5fi\n", (void*)(&x + cInd), re, im);
   }
 }
-      
+*/      
       
 
 /************************************************************************
