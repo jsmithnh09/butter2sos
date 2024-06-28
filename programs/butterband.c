@@ -17,6 +17,7 @@
  */
 
 #include "butter2sos_design.h"
+#include "version.h"
 #ifdef _WIN32
   #include <io.h>
 #else
@@ -25,13 +26,17 @@
 
 int main(int argc, char **argv)
 {
-  int order, type, N = 0;
-  real64_t fs, fc1, fc2;
+  int order = 0;
+  int type = 0;
+  int N = 0;
+  real64_t fs = 1.0; 
+  real64_t fc1 = 0.25;
+  real64_t fc2 = 0.5;
   real64_t *mat;
+  static char usage[] = "%s v%s: -n <order> -l <lowband> -h <highband> -r <samplerate> -t <type 0,1>\n";
   #ifdef _WIN32
-    static char usage[] = "%s: <order> <lowband> <highband> <samplerate> <type 0,1>\n";
     if (argc == 1) {
-      printf(usage, argv[0]);
+      printf(usage, argv[0], BUTTER_SOS_VERSION);
       exit(0);
     }
     if (argc != 6) {
@@ -46,7 +51,10 @@ int main(int argc, char **argv)
     type = atoi(argv[5]);
   #else
     int c;
-    static char usage[] = "%s: -n <order> -l <lowband> -h <highband> -r <samplerate> -t <type 0,1>\n";
+    if (argc == 1) {
+      printf(usage, argv[0], BUTTER_SOS_VERSION);
+      exit(0);
+    }
     while ((c = getopt(argc, argv, "n:l:h:r:t:")) != -1) {
       switch (c) {
         case 'n':

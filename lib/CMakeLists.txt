@@ -13,12 +13,12 @@ endif()
 #--------------------------------------------------
 # Generating the DLL for the program.
 #--------------------------------------------------
-add_library(butterlib SHARED butter2sos_design.c design.def)
-target_compile_features(butterlib PUBLIC cxx_std_11)
+add_library(butter SHARED butter2sos_design.c design.def)
+target_compile_features(butter PUBLIC cxx_std_11)
 if (WIN32 AND MSVC)
-    target_compile_options(butterlib PUBLIC /W4)
+    target_compile_options(butter PUBLIC /W4)
 else()
-    target_compile_options(butterlib PUBLIC -Wall -O2)
-    target_link_libraries(butterlib m)
+    target_compile_options(butter PUBLIC -Wall -O2)
+    target_link_libraries(butter m)
 endif()
-install(TARGETS butterlib RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/src/pybutter)
+install(TARGETS butter DESTINATION ${CMAKE_SOURCE_DIR}/src/pybutter)
